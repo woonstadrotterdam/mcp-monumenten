@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import Annotated, Optional
 
 import aiohttp
 from mcp.server.fastmcp import FastMCP
@@ -28,36 +28,16 @@ class MonumentenMCP(FastMCP):
                 destructiveHint=False,
                 readOnlyHint=True,
                 openWorldHint=True,
-                description="Get the ID of a verblijfsobject using address information. Provide either (postal_code + house_number) OR (street + house_number + city). Additional filters like house_letter and house_suffix can be provided for more precise matching.",
             ))
         async def get_verblijfsobject_id(
-            house_number: str, 
-            postal_code: Optional[str] = None, 
-            street: Optional[str] = None, 
-            city: Optional[str] = None,
-            house_letter: Optional[str] = None,
-            house_suffix: Optional[str] = None
+            house_number: Annotated[str, "The house number (required), e.g. '30'"], 
+            postal_code: Annotated[Optional[str], "The postal code for search mode 1, e.g. '1234AB'"] = None, 
+            street: Annotated[Optional[str], "The street name for search mode 2, e.g. 'Coolsingel'"] = None, 
+            city: Annotated[Optional[str], "The city name for search mode 2, e.g. 'Rotterdam'"] = None,
+            house_letter: Annotated[Optional[str], "The house letter, e.g. 'A' in '30A'"] = None,
+            house_suffix: Annotated[Optional[str], "The house number suffix/addition, e.g. '2' in '30-2'"] = None
         ) -> str:
-            """
-            Get the ID of a verblijfsobject using address information.
-            
-            Two search modes:
-            1. By postal code: provide postal_code + house_number
-            2. By full address: provide street + house_number + city
-            
-            Args:
-                house_number: The house number (required) e.g. '30'
-                postal_code: The postal code (optional, for mode 1) e.g. '1234AB'
-                street: The street name (optional, for mode 2) e.g. 'Coolsingel'
-                city: The city name (optional, for mode 2) e.g. 'Rotterdam'
-                house_letter: The house letter, e.g. 'A' in '30A'
-                house_suffix: The house number suffix/addition, e.g. '2' in '30-2'
-
-            Returns:
-                - Single identificatie string when exactly one match is found
-                - "Ambiguous address" message including a JSON array of IDs when multiple matches are found
-                - An explanatory message when no matches are found
-            """
+            """Get verblijfsobject ID using address. Use postal_code + house_number OR street + house_number + city. Additional filters like house_letter and house_suffix can be provided for more precise matching."""
             
             # Validate input combinations
             if postal_code and (street or city):
@@ -211,20 +191,11 @@ WHERE {{
                 destructiveHint=False,
                 readOnlyHint=True,
                 openWorldHint=True,
-                description="Get the monumental status of a verblijfsobject using the bag_verblijfsobject_id",
             ))
         async def get_monumental_status(
-            bag_verblijfsobject_id: str
+            bag_verblijfsobject_id: Annotated[str, "The verblijfsobject ID (16-18 digits)"]
         ) -> str:
-            """
-            Get the monumental status of a verblijfsobject
-            
-            Args: 
-                bag_verblijfsobject_id: The ID of the verblijfsobject to get the monumental status of. Usually a number of 16-18 digits.
-
-            Returns:
-                A JSON object with the monumental status of the verblijfsobject
-            """
+            """Get the monumental status of a verblijfsobject"""
             async with MonumentenClient() as client:
                 result = await client.process_from_list([bag_verblijfsobject_id])
-                return f"{json.dumps(result, indent=2)}. Always mention the source for the Rijksmonument status if it is a Rijksmonument. RCE = Rijksdienst voor het Cultureel Erfgoed."
+                return f"{json.dumps(result, indent=2)}. Always mention the source for the Rijksmonument status if it is a Rijksmonument. (RCE = Rijksdienst voor het Cultureel Erfgoed.)"

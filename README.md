@@ -30,7 +30,7 @@ Add to your AI assistant's MCP configuration:
   "mcpServers": {
     "monumenten": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/woonstadrotterdam/mcp-monumenten.git", "mcp-monumenten"]
+      "args": ["mcp-monumenten"]
     }
   }
 }
@@ -43,8 +43,7 @@ For local development:
   "mcpServers": {
     "monumenten": {
       "command": "uv",
-      "args": ["run", "src/mcp_monumenten/server.py"],
-      "cwd": "/path/to/mcp-monumenten"
+      "args": ["run", "--project", "/path/to/mcp-monumenten", "mcp-monumenten"]
     }
   }
 }
@@ -81,7 +80,7 @@ The server handles Dutch address formats:
 ### Via uvx (Recommended)
 
 ```bash
-uvx --from git+https://github.com/woonstadrotterdam/mcp-monumenten.git mcp-monumenten
+uvx mcp-monumenten
 ```
 
 ### Local Development
@@ -90,7 +89,7 @@ uvx --from git+https://github.com/woonstadrotterdam/mcp-monumenten.git mcp-monum
 git clone https://github.com/woonstadrotterdam/mcp-monumenten.git
 cd mcp-monumenten
 uv sync
-uv run src/mcp_monumenten/server.py
+uv run --project . mcp-monumenten
 ```
 
 ## Data Sources

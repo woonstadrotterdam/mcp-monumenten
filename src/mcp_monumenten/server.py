@@ -195,7 +195,7 @@ WHERE {{
         async def get_monumental_status(
             bag_verblijfsobject_id: Annotated[str, "The verblijfsobject ID (16-18 digits)"]
         ) -> str:
-            """Get the monumental status of a verblijfsobject"""
+            """Get the monumental status of a verblijfsobject. Always mention the source for the Rijksmonument status if it is a Rijksmonument. (RCE = Rijksdienst voor het Cultureel Erfgoed.)"""
             async with MonumentenClient() as client:
                 result = await client.process_from_list([bag_verblijfsobject_id])
-                return f"{json.dumps(result, indent=2)}. Always mention the source for the Rijksmonument status if it is a Rijksmonument. (RCE = Rijksdienst voor het Cultureel Erfgoed.)"
+                return json.dumps(result, indent=2)

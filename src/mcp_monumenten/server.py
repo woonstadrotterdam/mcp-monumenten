@@ -6,6 +6,8 @@ from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 from monumenten import MonumentenClient
 
+from .bag_queries import BAG_LV_ENDPOINT, build_address_query, build_postal_code_query
+
 
 class MonumentenMCP(FastMCP):
     def __init__(self, name: str = "Monumenten MCP", port: int | None = None, host: str = "127.0.0.1",
@@ -60,82 +62,12 @@ class MonumentenMCP(FastMCP):
 
             # Build SPARQL query based on search mode
             if search_mode == "postal_code":
-                # Build conditional parts
-                letter_clause = f'?adres imx:huisletter "{house_letter}" .' if house_letter else ''
-                suffix_clause = f'?adres imx:huisnummertoevoeging "{house_suffix}" .' if house_suffix else ''
-                letter_filter = '' if house_letter else 'FILTER NOT EXISTS { ?adres imx:huisletter ?_hl . }'
-                suffix_filter = '' if house_suffix else 'FILTER NOT EXISTS { ?adres imx:huisnummertoevoeging ?_hs . FILTER(?_hs != "H") }'
-                letter_bind = 'OPTIONAL { ?adres imx:huisletter ?huisletter . }'
-                suffix_bind = 'OPTIONAL { ?adres imx:huisnummertoevoeging ?huisnummertoevoeging . }'
-                
-                sparql_query = f"""
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX imx:  <http://modellen.geostandaarden.nl/def/imx-geo#>
-
-SELECT DISTINCT ?identificatie ?postcode ?huisnummer ?huisletter ?huisnummertoevoeging ?straatnaam ?plaatsnaam
-WHERE {{
-  ?adres prov:wasDerivedFrom ?verblijfsobjectIri ;
-         imx:isHoofdadres true ;
-         imx:postcode "{postal_code}" ;
-         imx:huisnummer {house_number} .
-  
-  {letter_clause}
-  {suffix_clause}
-
-  {letter_filter}
-  {suffix_filter}
-
-  OPTIONAL {{ ?adres imx:postcode ?postcode . }}
-  OPTIONAL {{ ?adres imx:huisnummer ?huisnummer . }}
-  {letter_bind}
-  {suffix_bind}
-  OPTIONAL {{ ?adres imx:straatnaam ?straatnaam . }}
-  OPTIONAL {{ ?adres imx:plaatsnaam ?plaatsnaam . }}
-
-  BIND(STRAFTER(STR(?verblijfsobjectIri), "https://bag.basisregistraties.overheid.nl/id/verblijfsobject/") AS ?identificatie)
-}}
-""".strip()
-            
+                sparql_query = build_postal_code_query(postal_code, house_number, house_letter, house_suffix)
             else:  # address mode
-                # Build conditional parts
-                letter_clause = f'?adres imx:huisletter "{house_letter}" .' if house_letter else ''
-                suffix_clause = f'?adres imx:huisnummertoevoeging "{house_suffix}" .' if house_suffix else ''
-                letter_filter = '' if house_letter else 'FILTER NOT EXISTS { ?adres imx:huisletter ?_hl . }'
-                suffix_filter = '' if house_suffix else 'FILTER NOT EXISTS { ?adres imx:huisnummertoevoeging ?_hs . FILTER(?_hs != "H") }'
-                letter_bind = 'OPTIONAL { ?adres imx:huisletter ?huisletter . }'
-                suffix_bind = 'OPTIONAL { ?adres imx:huisnummertoevoeging ?huisnummertoevoeging . }'
-                
-                sparql_query = f"""
-PREFIX prov: <http://www.w3.org/ns/prov#>
-PREFIX imx:  <http://modellen.geostandaarden.nl/def/imx-geo#>
+                sparql_query = build_address_query(street, house_number, city, house_letter, house_suffix)
 
-SELECT DISTINCT ?identificatie ?postcode ?huisnummer ?huisletter ?huisnummertoevoeging ?straatnaam ?plaatsnaam
-WHERE {{
-  ?adres prov:wasDerivedFrom ?verblijfsobjectIri ;
-         imx:isHoofdadres true ;
-         imx:straatnaam "{street}" ;
-         imx:huisnummer {house_number} ;
-         imx:plaatsnaam "{city}" .
-  
-  {letter_clause}
-  {suffix_clause}
-
-  {letter_filter}
-  {suffix_filter}
-
-  OPTIONAL {{ ?adres imx:straatnaam ?straatnaam . }}
-  OPTIONAL {{ ?adres imx:huisnummer ?huisnummer . }}
-  OPTIONAL {{ ?adres imx:plaatsnaam ?plaatsnaam . }}
-  {letter_bind}
-  {suffix_bind}
-  OPTIONAL {{ ?adres imx:postcode ?postcode . }}
-
-  BIND(STRAFTER(STR(?verblijfsobjectIri), "https://bag.basisregistraties.overheid.nl/id/verblijfsobject/") AS ?identificatie)
-}}
-""".strip()
-
-            # Execute SPARQL query against Kadaster endpoint
-            endpoint_url = "https://data.kkg.kadaster.nl/service/sparql"
+            # Execute SPARQL query against BAG LV endpoint
+            endpoint_url = BAG_LV_ENDPOINT
             
             headers = {
                 'Accept': 'application/sparql-results+json',

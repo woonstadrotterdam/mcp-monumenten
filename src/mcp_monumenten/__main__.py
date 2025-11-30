@@ -9,18 +9,19 @@ or
 
 python -m mcp_monumenten
 """
+
 import argparse
 import asyncio
 import logging
 import os
 import sys
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # type: ignore[import-not-found]
 
 from mcp_monumenten.server import MonumentenMCP
 
 
-def setup_logging(transport_mode: str = "stdio"):
+def setup_logging(transport_mode: str = "stdio") -> logging.Logger:
     """Setup logging configuration based on transport mode."""
     # Configure logging to stderr to avoid interfering with stdio protocol
     log_level = os.getenv("MCP_LOG_LEVEL", "INFO").upper()
@@ -48,7 +49,7 @@ def setup_logging(transport_mode: str = "stdio"):
     return logging.getLogger(__name__)
 
 
-def main():
+def main() -> None:
     """Main entry point for the MCP Monumenten Server"""
     load_dotenv()
 

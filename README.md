@@ -16,10 +16,10 @@ This MCP server allows AI assistants to:
 
 ### Available Tools
 
-| Tool | Parameters | Description |
-|------|------------|-------------|
-| **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Finds BAG verblijfsobject ID for an address |
-| **`get_monumental_status`** | `bag_verblijfsobject_id` | Checks if a property is a rijksmonument, in protected cityscape, or municipal monument |
+| Tool                         | Parameters                                                                                                   | Description                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Finds BAG verblijfsobject ID for an address                                            |
+| **`get_monumental_status`**  | `bag_verblijfsobject_id`                                                                                     | Checks if a property is a rijksmonument, in protected cityscape, or municipal monument |
 
 ## Quick Setup
 
@@ -56,6 +56,7 @@ For local development:
 **"What is the monumental status of Coolsingel 30, Rotterdam?"**
 
 The AI will:
+
 1. Convert the address to a BAG verblijfsobject ID
 2. Check monument registries
 3. Report rijksmonument status, protected cityscape inclusion, or municipal monument designation
@@ -63,6 +64,7 @@ The AI will:
 **"Is 1234AB 30-2 a rijksmonument?"**
 
 The AI can handle:
+
 - Postal code + house number format
 - House number suffixes (30-2, 30A, etc.)
 - Direct verblijfsobject ID lookups
@@ -70,6 +72,7 @@ The AI can handle:
 ### Address Flexibility
 
 The server handles Dutch address formats:
+
 - `1234AB 30` - Basic postal code + house number
 - `1234AB 30-2` - With house number suffix
 - `1234AB 30A` - With house letter

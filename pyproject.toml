@@ -1,13 +1,13 @@
 [project]
 name = "mcp-monumenten"
-version = "0.1.1"
+version = "1.0.0"
 description = "MCP server voor monumentale statussen in Nederland."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "dotenv>=0.9.9",
     "mcp[cli]>=1.12.3",
-    "monumenten>=0.4.0",
+    "monumenten>=1.0.1",
 ]
 license = "MIT"
 authors = [
@@ -39,4 +39,10 @@ where = ["src"]
 [dependency-groups]
 dev = [
     "pre-commit>=4.2.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

@@ -1,6 +1,6 @@
 [project]
 name = "mcp-monumenten"
-version = "1.1.0"
+version = "2.0.0"
 description = "MCP server voor monumentale statussen in Nederland."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"

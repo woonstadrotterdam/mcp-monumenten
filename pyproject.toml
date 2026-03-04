@@ -3,7 +3,7 @@ name = "mcp-monumenten"
 version = "1.1.0"
 description = "MCP server voor monumentale statussen in Nederland."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "dotenv>=0.9.9",
     "mcp[cli]>=1.12.3",
@@ -21,7 +21,6 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
 ]
 
 [project.scripts]

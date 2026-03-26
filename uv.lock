@@ -6,6 +6,10 @@ resolution-markers = [
     "python_full_version < '3.12'",
 ]
 
+[options]
+exclude-newer = "2026-03-19T07:13:58.333957Z"
+exclude-newer-span = "P1W"
+
 [[package]]
 name = "aiocache"
 version = "0.12.3"
@@ -441,7 +445,7 @@ cli = [
 
 [[package]]
 name = "mcp-monumenten"
-version = "1.1.0"
+version = "2.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "dotenv" },

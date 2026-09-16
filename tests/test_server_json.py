@@ -5,7 +5,7 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_NAME = "io.github.woonstadrotterdam/mcp-monumenten"
+REGISTRY_NAME = "io.github.woonstadrotterdam/monumenten"
 
 
 def test_server_json_matches_package_metadata() -> None:

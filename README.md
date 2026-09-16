@@ -2,7 +2,7 @@
 
 A Model Context Protocol (MCP) server that enables AI assistants to check monumental status of Dutch addresses. Connects to the Dutch BAG (Basisadministratie Adressen en Gebouwen) data and Ministry of Cultural Heritage (Rijksdienst voor het Cultureel Erfgoed) to identify national monuments, protected cityscapes, and municipal monuments.
 
-<!-- mcp-name: io.github.woonstadrotterdam/mcp-monumenten -->
+<!-- mcp-name: io.github.woonstadrotterdam/monumenten -->
 
 Built on the [MCP Python SDK](https://py.sdk.modelcontextprotocol.io/) v2 (`MCPServer`). Tools return structured results; validation and lookup failures raise `ToolError` (`is_error=true`) so the model can retry.
 

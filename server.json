@@ -1,6 +1,6 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.woonstadrotterdam/mcp-monumenten",
+  "name": "io.github.woonstadrotterdam/monumenten",
   "title": "Monumenten",
   "description": "Look up Dutch BAG verblijfsobject IDs and monumental status.",
   "repository": {

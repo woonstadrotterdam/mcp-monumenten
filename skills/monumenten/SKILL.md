@@ -1,4 +1,5 @@
 ---
+name: monumenten
 description: >
   Look up WWS-relevant monumental status of a Dutch address
   (rijksmonument, rijksbeschermd stads- of dorpsgezicht, gemeentelijk monument;

@@ -44,9 +44,7 @@ def main() -> None:
     load_dotenv()
 
     parser = argparse.ArgumentParser(description="MCP Monumenten Server")
-    parser.add_argument(
-        "--name", default=SERVER_NAME, help="Name for the MCP server"
-    )
+    parser.add_argument("--name", default=SERVER_NAME, help="Name for the MCP server")
     parser.add_argument(
         "--http",
         action="store_true",

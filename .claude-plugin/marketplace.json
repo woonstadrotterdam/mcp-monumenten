@@ -10,7 +10,7 @@
     {
       "name": "monumenten",
       "source": "./",
-      "description": "Look up Dutch BAG verblijfsobject IDs and monumental status. Zoek de monumentale status van een Nederlands adres.",
+      "description": "Look up Dutch BAG verblijfsobject IDs and monumental status. Vind de monumentale status van een adres in Nederland.",
       "version": "3.0.0",
       "author": {
         "name": "Woonstad Rotterdam",

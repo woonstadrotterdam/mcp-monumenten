@@ -59,6 +59,17 @@ For local development:
 
 Streamable HTTP (`mcp-monumenten --http`) listens on `http://127.0.0.1:8000/mcp` by default.
 
+### Claude Code plugin
+
+Requires [uv](https://docs.astral.sh/uv/). Then:
+
+```text
+/plugin marketplace add woonstadrotterdam/mcp-monumenten
+/plugin install monumenten@woonstad-rotterdam
+```
+
+Or add the server directly: `claude mcp add monumenten -- uvx mcp-monumenten`.
+
 ## Usage Examples
 
 ### Finding Monumental Status

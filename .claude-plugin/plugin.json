@@ -1,0 +1,13 @@
+{
+  "name": "monumenten",
+  "description": "Look up Dutch BAG verblijfsobject IDs and monumental status (rijksmonument, protected cityscape, municipal monument).",
+  "version": "3.0.0",
+  "author": {
+    "name": "Woonstad Rotterdam",
+    "email": "tomer.gabay@woonstadrotterdam.nl"
+  },
+  "homepage": "https://github.com/woonstadrotterdam/mcp-monumenten",
+  "repository": "https://github.com/woonstadrotterdam/mcp-monumenten",
+  "license": "MIT",
+  "keywords": ["mcp", "monumenten", "rijksmonumenten", "kadaster", "bag"]
+}

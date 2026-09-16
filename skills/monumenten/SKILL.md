@@ -1,8 +1,12 @@
 ---
-description: Look up Dutch BAG verblijfsobject IDs and whether an address is a rijksmonument, in a protected cityscape, or a municipal monument. Use when the user asks about monumental status, heritage protection, or BAG IDs for a Dutch address.
+description: >
+  Look up Dutch BAG verblijfsobject IDs and monumental status
+  (rijksmonument, beschermd stadsgezicht, gemeentelijk monument).
+  Use when the user asks about monumental status, heritage protection,
+  BAG-IDs, monumentale status, erfgoed, or rijksmonumenten.
 ---
 
-Use the Monumenten MCP tools. Prefer `postal_code` + `house_number` over street + city when both are available.
+Use the Monumenten MCP tools. Prefer `postal_code` + `house_number` over street + city when both are available. Reply in the user's language (Dutch or English).
 
 1. Call `get_verblijfsobject_id` first unless the user already provided a 16-digit BAG verblijfsobject ID.
 2. If there are multiple matches, list them and ask which one to check. Do not guess.

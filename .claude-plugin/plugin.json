@@ -1,6 +1,6 @@
 {
   "name": "monumenten",
-  "description": "Look up Dutch BAG verblijfsobject IDs and monumental status (rijksmonument, beschermd stadsgezicht, gemeentelijk monument). Vind de monumentale status van een Nederlands adres.",
+  "description": "Vind de monumentale status van een Nederlands adres (rijksmonument, beschermd stadsgezicht, gemeentelijk monument; provinciaal monument nog niet). Look up Dutch BAG verblijfsobject IDs and monumental status. Provincial monuments are not covered yet.",
   "version": "3.0.0",
   "author": {
     "name": "Woonstad Rotterdam",

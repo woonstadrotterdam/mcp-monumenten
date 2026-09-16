@@ -1,6 +1,6 @@
 {
   "name": "woonstad-rotterdam",
-  "description": "Woonstad Rotterdam Claude Code plugins / Claude Code-plug-ins van Woonstad Rotterdam.",
+  "description": "Claude Code-plug-ins van Woonstad Rotterdam / Woonstad Rotterdam Claude Code plugins.",
   "owner": {
     "name": "Woonstad Rotterdam",
     "email": "tomer.gabay@woonstadrotterdam.nl",
@@ -10,7 +10,7 @@
     {
       "name": "monumenten",
       "source": "./",
-      "description": "Look up Dutch BAG verblijfsobject IDs and monumental status. Vind de monumentale status van een adres in Nederland.",
+      "description": "Vind de monumentale status van een adres in Nederland (rijksmonument, beschermd stadsgezicht, gemeentelijk monument; provinciaal monument nog niet). Look up Dutch BAG verblijfsobject IDs and monumental status. Provincial monuments are not covered yet.",
       "version": "3.0.0",
       "author": {
         "name": "Woonstad Rotterdam",

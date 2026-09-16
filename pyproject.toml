@@ -1,7 +1,7 @@
 [project]
 name = "mcp-monumenten"
-version = "3.0.1"
-description = "MCP server voor monumentale statussen in Nederland."
+version = "3.0.2"
+description = "Vind voor de woningwaardering relevante monumentale statussen van een adres in Nederland."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

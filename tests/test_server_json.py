@@ -19,6 +19,7 @@ def test_server_json_matches_package_metadata() -> None:
 
     assert server["name"] == REGISTRY_NAME
     assert server["version"] == version
+    assert len(server["description"]) <= 100
     assert pypi["identifier"] == name
     assert pypi["version"] == version
     assert pypi["runtimeHint"] == "uvx"

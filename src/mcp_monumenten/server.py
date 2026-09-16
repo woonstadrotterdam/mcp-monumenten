@@ -7,6 +7,8 @@ from mcp.types import ToolAnnotations
 
 from .tools import get_monumental_status, get_verblijfsobject_id
 
+SERVER_NAME = "monumenten"
+
 _READ_ONLY_ANNOTATIONS = ToolAnnotations(
     read_only_hint=True,
     open_world_hint=True,
@@ -31,7 +33,7 @@ def _register_tools(mcp: MCPServer) -> None:
 class MonumentenMCP(MCPServer):
     """MCP server for Dutch monumental status lookups."""
 
-    def __init__(self, name: str = "Monumenten MCP") -> None:
+    def __init__(self, name: str = SERVER_NAME) -> None:
         super().__init__(
             name,
             version=version("mcp-monumenten"),

@@ -11,7 +11,7 @@
       "name": "monumenten",
       "source": "./",
       "description": "Vind voor de woningwaardering relevante monumentale statussen van een adres in Nederland. Look up monumental statuses of a Dutch address that are relevant for woningwaardering (the Dutch rent-point system).",
-      "version": "3.0.1",
+      "version": "3.0.2",
       "author": {
         "name": "Woonstad Rotterdam",
         "email": "tomer.gabay@woonstadrotterdam.nl"

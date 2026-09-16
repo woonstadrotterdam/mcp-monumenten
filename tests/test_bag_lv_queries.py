@@ -21,14 +21,14 @@ async def execute_sparql_query(query: str) -> dict:
     }
     data = {"query": query}
 
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
-            BAG_LV_ENDPOINT, headers=headers, data=data
-        ) as response:
-            assert response.status == 200, (
-                f"SPARQL query failed with status {response.status}"
-            )
-            return await response.json()
+    async with (
+        aiohttp.ClientSession() as session,
+        session.post(BAG_LV_ENDPOINT, headers=headers, data=data) as response,
+    ):
+        assert response.status == 200, (
+            f"SPARQL query failed with status {response.status}"
+        )
+        return await response.json()
 
 
 @pytest.mark.asyncio

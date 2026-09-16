@@ -24,3 +24,8 @@ def test_server_json_matches_package_metadata() -> None:
     assert pypi["runtimeHint"] == "uvx"
     assert pypi["transport"]["type"] == "stdio"
     assert f"mcp-name: {REGISTRY_NAME}" in readme
+
+    plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
+    marketplace = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())
+    assert plugin["version"] == version
+    assert marketplace["plugins"][0]["version"] == version

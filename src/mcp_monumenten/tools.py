@@ -1,5 +1,6 @@
 """MCP tool implementations for BAG lookup and monumental status."""
 
+import asyncio
 from typing import Annotated, Any
 
 import aiohttp
@@ -8,6 +9,7 @@ from monumenten import MonumentenClient  # type: ignore[import-not-found]
 from pydantic import Field
 
 from .bag_queries import BAG_LV_ENDPOINT, build_address_query, build_postal_code_query
+from .locatieserver import lookup_provincie
 from .models import MonumentalStatus, VerblijfsobjectLookup, VerblijfsobjectMatch
 
 HouseNumber = Annotated[
@@ -63,16 +65,16 @@ async def _post_sparql(query: str) -> dict[str, Any]:
         "Accept": "application/sparql-results+json",
         "Content-Type": "application/x-www-form-urlencoded",
     }
-    async with aiohttp.ClientSession() as session:
-        async with session.post(
+    async with (
+        aiohttp.ClientSession() as session,
+        session.post(
             BAG_LV_ENDPOINT, headers=headers, data={"query": query}
-        ) as response:
-            if response.status != 200:
-                raise ToolError(
-                    f"Error querying Kadaster endpoint: HTTP {response.status}"
-                )
-            payload: dict[str, Any] = await response.json()
-            return payload
+        ) as response,
+    ):
+        if response.status != 200:
+            raise ToolError(f"Error querying Kadaster endpoint: HTTP {response.status}")
+        payload: dict[str, Any] = await response.json()
+        return payload
 
 
 async def get_verblijfsobject_id(
@@ -152,10 +154,14 @@ async def get_monumental_status(
 
     Always mention the source for the Rijksmonument status if it is a
     Rijksmonument. (RCE = Rijksdienst voor het Cultureel Erfgoed.)
+    Reply in the user's language. provinciaal_monument is not looked up.
     """
     try:
         async with MonumentenClient() as client:
-            result = await client.process_from_list([bag_verblijfsobject_id])
+            result, provincie = await asyncio.gather(
+                client.process_from_list([bag_verblijfsobject_id]),
+                lookup_provincie(bag_verblijfsobject_id),
+            )
     except Exception as exc:
         raise ToolError(f"Error fetching monumental status: {exc}") from exc
 
@@ -164,4 +170,12 @@ async def get_monumental_status(
         raise ToolError(
             f"No monumental status found for verblijfsobject {bag_verblijfsobject_id}"
         )
-    return MonumentalStatus(bag_verblijfsobject_id=bag_verblijfsobject_id, **status)
+    status = dict(status)
+    status.pop("provincie", None)
+    status.pop("provinciaal_monument", None)
+    return MonumentalStatus(
+        bag_verblijfsobject_id=bag_verblijfsobject_id,
+        **status,
+        provincie=provincie,
+        provinciaal_monument=None,
+    )

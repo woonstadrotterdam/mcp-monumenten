@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "monumenten": {
+      "command": "uvx",
+      "args": ["mcp-monumenten"]
+    }
+  }
+}

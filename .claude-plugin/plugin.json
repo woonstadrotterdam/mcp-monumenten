@@ -1,0 +1,13 @@
+{
+  "name": "monumenten",
+  "description": "Vind voor de woningwaardering relevante monumentale statussen van een adres in Nederland. Look up monumental statuses of a Dutch address that are relevant for woningwaardering (the Dutch rent-point system).",
+  "version": "3.0.1",
+  "author": {
+    "name": "Woonstad Rotterdam",
+    "email": "tomer.gabay@woonstadrotterdam.nl"
+  },
+  "homepage": "https://github.com/woonstadrotterdam/mcp-monumenten",
+  "repository": "https://github.com/woonstadrotterdam/mcp-monumenten",
+  "license": "MIT",
+  "keywords": ["mcp", "monumenten", "rijksmonumenten", "kadaster", "bag"]
+}

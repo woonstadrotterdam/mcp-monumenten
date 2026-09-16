@@ -6,7 +6,7 @@ import pytest
 from mcp import Client
 
 from mcp_monumenten.models import VerblijfsobjectLookup, VerblijfsobjectMatch
-from mcp_monumenten.server import MonumentenMCP
+from mcp_monumenten.server import SERVER_NAME, MonumentenMCP
 
 COOLSINGEL_BINDING = {
     "identificatie": {"value": "0599010000243626"},
@@ -57,6 +57,19 @@ async def _fake_zuid_holland(_bag_id: str) -> str:
 
 async def _fake_no_provincie(_bag_id: str) -> None:
     return None
+
+
+@pytest.mark.asyncio
+async def test_default_server_name_is_monumenten() -> None:
+    """Cursor and other clients show the MCP initialize name."""
+    mcp = MonumentenMCP()
+    assert mcp.name == SERVER_NAME
+    async with Client(mcp, raise_exceptions=True) as client:
+        tools = await client.list_tools()
+    assert {tool.name for tool in tools.tools} == {
+        "get_verblijfsobject_id",
+        "get_monumental_status",
+    }
 
 
 @pytest.mark.asyncio

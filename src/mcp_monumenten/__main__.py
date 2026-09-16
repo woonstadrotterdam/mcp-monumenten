@@ -16,7 +16,7 @@ import sys
 
 from dotenv import load_dotenv  # type: ignore[import-not-found]
 
-from mcp_monumenten.server import MonumentenMCP
+from mcp_monumenten.server import SERVER_NAME, MonumentenMCP
 
 
 def setup_logging(transport_mode: str = "stdio") -> logging.Logger:
@@ -45,7 +45,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="MCP Monumenten Server")
     parser.add_argument(
-        "--name", default="Monumenten MCP", help="Name for the MCP server"
+        "--name", default=SERVER_NAME, help="Name for the MCP server"
     )
     parser.add_argument(
         "--http",

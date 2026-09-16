@@ -9,7 +9,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-09-09T12:53:43.819017Z"
+exclude-newer = "2026-09-09T14:53:15.668891Z"
 exclude-newer-span = "P1W"
 
 [manifest]
@@ -637,7 +637,7 @@ cli = [
 
 [[package]]
 name = "mcp-monumenten"
-version = "3.0.1"
+version = "3.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },

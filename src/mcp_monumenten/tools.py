@@ -12,6 +12,8 @@ from .bag_queries import BAG_LV_ENDPOINT, build_address_query, build_postal_code
 from .locatieserver import lookup_provincie
 from .models import MonumentalStatus, VerblijfsobjectLookup, VerblijfsobjectMatch
 
+_PROVINCIES_MET_PROVINCIAAL_MONUMENT = frozenset({"Noord-Holland", "Drenthe"})
+
 HouseNumber = Annotated[
     str,
     Field(description="The house number, e.g. '30'", pattern=r"^[1-9]\d{0,4}$"),
@@ -147,6 +149,13 @@ async def get_verblijfsobject_id(
     return VerblijfsobjectLookup(matches=matches)
 
 
+def provinciaal_monument_for(provincie: str | None) -> bool | None:
+    """False outside NH/Drenthe; null when the list exists or provincie is unknown."""
+    if provincie is None or provincie in _PROVINCIES_MET_PROVINCIAAL_MONUMENT:
+        return None
+    return False
+
+
 async def get_monumental_status(
     bag_verblijfsobject_id: BagVerblijfsobjectId,
 ) -> MonumentalStatus:
@@ -154,7 +163,8 @@ async def get_monumental_status(
 
     Always mention the source for the Rijksmonument status if it is a
     Rijksmonument. (RCE = Rijksdienst voor het Cultureel Erfgoed.)
-    Reply in the user's language. provinciaal_monument is not looked up.
+    Reply in the user's language. provinciaal_monument is false outside
+    Noord-Holland and Drenthe; null there or when provincie is unknown.
     """
     try:
         async with MonumentenClient() as client:
@@ -177,5 +187,5 @@ async def get_monumental_status(
         bag_verblijfsobject_id=bag_verblijfsobject_id,
         **status,
         provincie=provincie,
-        provinciaal_monument=None,
+        provinciaal_monument=provinciaal_monument_for(provincie),
     )

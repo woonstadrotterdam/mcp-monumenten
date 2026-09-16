@@ -25,7 +25,7 @@ This MCP server allows AI assistants to:
 | Tool                         | Parameters                                                                                                   | Result                                                                                                                                                   |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Structured `matches` list of BAG verblijfsobject records                                                                                                 |
-| **`get_monumental_status`**  | `bag_verblijfsobject_id` (16 digits)                                                                         | Structured monumental status (provincie, rijksmonument, rijksbeschermd stads-/dorpsgezicht, municipal monument; `provinciaal_monument` is always `null`) |
+| **`get_monumental_status`**  | `bag_verblijfsobject_id` (16 digits)                                                                         | Structured monumental status (provincie, rijksmonument, rijksbeschermd stads-/dorpsgezicht, municipal monument; `provinciaal_monument` is `false` outside Noord-Holland and Drenthe, otherwise `null`) |
 
 ## Quick Setup
 

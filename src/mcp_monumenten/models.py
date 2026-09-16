@@ -53,11 +53,11 @@ class MonumentalStatus(BaseModel):
     provinciaal_monument: bool | None = Field(
         default=None,
         description=(
-            "Provincial monument. Always null: this status is not looked up. "
-            "It only exists in Noord-Holland and Drenthe, and is mutually exclusive "
-            "with rijksmonument and gemeentelijk_monument. If provincie is one of "
-            "those or unknown, and the other monument flags are not true, tell the "
-            "user this was not checked, in the user's language. "
-            "Do not report it as false."
+            "Provincial monument. false if provincie is known and is not "
+            "Noord-Holland or Drenthe (those provinces do not designate them). "
+            "null if provincie is Noord-Holland, Drenthe, or unknown: the list "
+            "is not looked up. Mutually exclusive with rijksmonument and "
+            "gemeentelijk_monument. If null, tell the user this was not checked, "
+            "in the user's language."
         ),
     )

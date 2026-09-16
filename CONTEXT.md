@@ -9,8 +9,8 @@ The current Dutch province in which the verblijfsobject lies.
 _Avoid_: BAG-ID prefix, historical gemeente-at-creation, province inferred from woonplaats name
 
 **Provinciaal monument**:
-A provincial heritage designation that currently exists only in Noord-Holland and Drenthe. Mutually exclusive with rijksmonument and gemeentelijk monument. Relevant for woningwaardering; not looked up.
-_Avoid_: Treating an unchecked provincial list as “not a provincial monument”
+A provincial heritage designation that currently exists only in Noord-Holland and Drenthe. Mutually exclusive with rijksmonument and gemeentelijk monument. Relevant for woningwaardering. Outside those provinces the value is false. In Noord-Holland and Drenthe it is not looked up (`null`).
+_Avoid_: Treating an unchecked Noord-Holland or Drenthe list as “not a provincial monument”
 
 **Rijksmonument**:
 A national heritage designation. Mutually exclusive with provinciaal monument and gemeentelijk monument.

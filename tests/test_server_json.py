@@ -27,5 +27,8 @@ def test_server_json_matches_package_metadata() -> None:
 
     plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
     marketplace = json.loads((ROOT / ".claude-plugin/marketplace.json").read_text())
+    cursor_plugin = json.loads((ROOT / ".cursor-plugin/plugin.json").read_text())
     assert plugin["version"] == version
     assert marketplace["plugins"][0]["version"] == version
+    assert cursor_plugin["version"] == version
+    assert cursor_plugin["mcpServers"] == "./.mcp.json"

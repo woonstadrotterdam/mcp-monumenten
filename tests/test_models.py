@@ -11,12 +11,14 @@ def test_provinciaal_monument_is_present_and_null() -> None:
     assert "notitie" not in dumped
 
 
-def test_provinciaal_monument_schema_says_not_looked_up() -> None:
+def test_provinciaal_monument_schema_explains_false_vs_null() -> None:
     schema = MonumentalStatus.model_json_schema()
     description = schema["properties"]["provinciaal_monument"]["description"]
+    assert "false" in description
     assert "not looked up" in description
     assert "Noord-Holland" in description
     assert "Drenthe" in description
+    assert "Always null" not in description
 
 
 def test_rijksbeschermd_gezicht_schema_is_national_only() -> None:

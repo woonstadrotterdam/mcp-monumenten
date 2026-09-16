@@ -14,4 +14,4 @@ Use the Monumenten MCP tools. Prefer `postal_code` + `house_number` over street 
 2. If there are multiple matches, list them and ask which one to check. Do not guess.
 3. Call `get_monumental_status` with the chosen `bag_verblijfsobject_id`.
 4. For a rijksmonument, always cite the source (RCE = Rijksdienst voor het Cultureel Erfgoed).
-5. Structured fields are facts. Phrase them in the user's language. `provinciaal_monument` is not looked up (`null`). `rijksbeschermd_gezicht` is the national cityscape only.
+5. Structured fields are facts. Phrase them in the user's language. `provinciaal_monument` is `false` outside Noord-Holland and Drenthe; `null` means not looked up (those two provinces, or unknown provincie). `rijksbeschermd_gezicht` is the national cityscape only.

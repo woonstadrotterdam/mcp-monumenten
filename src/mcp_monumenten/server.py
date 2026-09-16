@@ -17,7 +17,8 @@ _INSTRUCTIONS = (
     "Prefer postal_code + house_number. Reply in the user's language. "
     "For a rijksmonument, always cite the source "
     "(RCE = Rijksdienst voor het Cultureel Erfgoed). "
-    "Follow the output field descriptions: null means not looked up, not false; "
+    "Follow the output field descriptions: null means not looked up; "
+    "provinciaal_monument is false outside Noord-Holland and Drenthe; "
     "rijksbeschermd_gezicht is national only."
 )
 

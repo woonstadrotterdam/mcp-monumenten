@@ -55,6 +55,14 @@ async def _fake_zuid_holland(_bag_id: str) -> str:
     return "Zuid-Holland"
 
 
+async def _fake_noord_holland(_bag_id: str) -> str:
+    return "Noord-Holland"
+
+
+async def _fake_drenthe(_bag_id: str) -> str:
+    return "Drenthe"
+
+
 async def _fake_no_provincie(_bag_id: str) -> None:
     return None
 
@@ -125,7 +133,7 @@ async def test_get_monumental_status_unwraps_bag_id(
     assert result.structured_content["rijksmonument"] is True
     assert result.structured_content["rijksmonument_bron"] == ["RCE"]
     assert result.structured_content["provincie"] == "Zuid-Holland"
-    assert result.structured_content["provinciaal_monument"] is None
+    assert result.structured_content["provinciaal_monument"] is False
     assert "notitie" not in result.structured_content
 
 
@@ -151,6 +159,50 @@ async def test_get_monumental_status_without_provincie(
     assert result.structured_content["provincie"] is None
     assert result.structured_content["provinciaal_monument"] is None
     assert "notitie" not in result.structured_content
+
+
+@pytest.mark.asyncio
+async def test_get_monumental_status_noord_holland_leaves_provincial_null(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Noord-Holland has provincial monuments; the list is not looked up."""
+    monkeypatch.setattr(
+        "mcp_monumenten.tools.MonumentenClient",
+        lambda: _FakeMonumentenClient(),
+    )
+    monkeypatch.setattr("mcp_monumenten.tools.lookup_provincie", _fake_noord_holland)
+    async with Client(MonumentenMCP(), raise_exceptions=True) as client:
+        result = await client.call_tool(
+            "get_monumental_status",
+            {"bag_verblijfsobject_id": "0599010000243626"},
+        )
+
+    assert result.is_error is False
+    assert result.structured_content is not None
+    assert result.structured_content["provincie"] == "Noord-Holland"
+    assert result.structured_content["provinciaal_monument"] is None
+
+
+@pytest.mark.asyncio
+async def test_get_monumental_status_drenthe_leaves_provincial_null(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Drenthe has provincial monuments; the list is not looked up."""
+    monkeypatch.setattr(
+        "mcp_monumenten.tools.MonumentenClient",
+        lambda: _FakeMonumentenClient(),
+    )
+    monkeypatch.setattr("mcp_monumenten.tools.lookup_provincie", _fake_drenthe)
+    async with Client(MonumentenMCP(), raise_exceptions=True) as client:
+        result = await client.call_tool(
+            "get_monumental_status",
+            {"bag_verblijfsobject_id": "0599010000243626"},
+        )
+
+    assert result.is_error is False
+    assert result.structured_content is not None
+    assert result.structured_content["provincie"] == "Drenthe"
+    assert result.structured_content["provinciaal_monument"] is None
 
 
 @pytest.mark.asyncio

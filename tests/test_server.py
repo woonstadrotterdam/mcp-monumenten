@@ -42,12 +42,21 @@ class _FakeMonumentenClient:
                 "rijksbeschermd_gezicht_naam": None,
                 "gemeentelijk_monument": False,
                 "grondslag_gemeentelijk_monument": None,
+                "provinciaal_monument": False,
             }
         }
 
 
 def _error_text(result: Any) -> str:
     return "".join(block.text for block in result.content)
+
+
+async def _fake_zuid_holland(_bag_id: str) -> str:
+    return "Zuid-Holland"
+
+
+async def _fake_no_provincie(_bag_id: str) -> None:
+    return None
 
 
 @pytest.mark.asyncio
@@ -103,6 +112,7 @@ async def test_get_monumental_status_unwraps_bag_id(
         "mcp_monumenten.tools.MonumentenClient",
         lambda: _FakeMonumentenClient(),
     )
+    monkeypatch.setattr("mcp_monumenten.tools.lookup_provincie", _fake_zuid_holland)
     async with Client(MonumentenMCP(), raise_exceptions=True) as client:
         result = await client.call_tool(
             "get_monumental_status",
@@ -114,6 +124,33 @@ async def test_get_monumental_status_unwraps_bag_id(
     assert result.structured_content["bag_verblijfsobject_id"] == "0599010000243626"
     assert result.structured_content["rijksmonument"] is True
     assert result.structured_content["rijksmonument_bron"] == ["RCE"]
+    assert result.structured_content["provincie"] == "Zuid-Holland"
+    assert result.structured_content["provinciaal_monument"] is None
+    assert "notitie" not in result.structured_content
+
+
+@pytest.mark.asyncio
+async def test_get_monumental_status_without_provincie(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Missing provincie does not fail the monumental status lookup."""
+    monkeypatch.setattr(
+        "mcp_monumenten.tools.MonumentenClient",
+        lambda: _FakeMonumentenClient(),
+    )
+    monkeypatch.setattr("mcp_monumenten.tools.lookup_provincie", _fake_no_provincie)
+    async with Client(MonumentenMCP(), raise_exceptions=True) as client:
+        result = await client.call_tool(
+            "get_monumental_status",
+            {"bag_verblijfsobject_id": "0599010000243626"},
+        )
+
+    assert result.is_error is False
+    assert result.structured_content is not None
+    assert result.structured_content["rijksmonument"] is True
+    assert result.structured_content["provincie"] is None
+    assert result.structured_content["provinciaal_monument"] is None
+    assert "notitie" not in result.structured_content
 
 
 @pytest.mark.asyncio

@@ -1,6 +1,6 @@
 # Monumenten MCP Server 🏛️
 
-A Model Context Protocol (MCP) server that enables AI assistants to check monumental status of Dutch addresses. Connects to the Dutch BAG (Basisadministratie Adressen en Gebouwen) data and Ministry of Cultural Heritage (Rijksdienst voor het Cultureel Erfgoed) to identify national monuments, protected cityscapes, and municipal monuments.
+A Model Context Protocol (MCP) server that enables AI assistants to check monumental status of Dutch addresses relevant for woningwaardering (rent-point system). Connects to the Dutch BAG (Basisadministratie Adressen en Gebouwen) data and Ministry of Cultural Heritage (Rijksdienst voor het Cultureel Erfgoed) to identify national monuments, nationally protected cityscapes, and municipal monuments.
 
 <!-- mcp-name: io.github.woonstadrotterdam/monumenten -->
 
@@ -22,12 +22,10 @@ This MCP server allows AI assistants to:
 
 ### Available Tools
 
-| Tool                         | Parameters                                                                                                   | Result                                                                                |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Structured `matches` list of BAG verblijfsobject records                              |
-| **`get_monumental_status`**  | `bag_verblijfsobject_id` (16 digits)                                                                         | Structured monumental status (rijksmonument, protected cityscape, municipal monument) |
-
-Prefer `postal_code` + `house_number` when both are available. For a rijksmonument, always cite the source (RCE = Rijksdienst voor het Cultureel Erfgoed).
+| Tool                         | Parameters                                                                                                   | Result                                                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Structured `matches` list of BAG verblijfsobject records                                                                                                 |
+| **`get_monumental_status`**  | `bag_verblijfsobject_id` (16 digits)                                                                         | Structured monumental status (provincie, rijksmonument, rijksbeschermd stads-/dorpsgezicht, municipal monument; `provinciaal_monument` is always `null`) |
 
 ## Quick Setup
 
@@ -80,7 +78,7 @@ The AI will:
 
 1. Convert the address to a BAG verblijfsobject ID
 2. Check monument registries
-3. Report rijksmonument status, protected cityscape inclusion, or municipal monument designation
+3. Report rijksmonument status, rijksbeschermd stads-/dorpsgezicht, or municipal monument designation
 
 **"Is 1234AB 30-2 a rijksmonument?"**
 

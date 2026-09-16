@@ -13,7 +13,7 @@ from mcp_monumenten.bag_queries import (
 
 def test_sparql_escape_quotes_and_backslashes() -> None:
     """Quotes and backslashes are escaped for SPARQL string literals."""
-    assert sparql_escape(r'foo"bar\baz') == r'foo\"bar\\baz'
+    assert sparql_escape(r'foo"bar\baz') == r"foo\"bar\\baz"
 
 
 def test_sparql_quoted_wraps_escaped_value() -> None:
@@ -37,7 +37,7 @@ def test_postal_code_query_escapes_user_strings() -> None:
 
 def test_address_query_escapes_street_and_city() -> None:
     """Address queries quote street and city names."""
-    query = build_address_query(r'Cool\singel', "12", 'Rotterdam"')
+    query = build_address_query(r"Cool\singel", "12", 'Rotterdam"')
     assert 'bag:naam "Cool\\\\singel"' in query
     assert 'bag:naam "Rotterdam\\""' in query
     assert "bag:huisnummer 12" in query

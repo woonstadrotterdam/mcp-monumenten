@@ -2,6 +2,10 @@
 
 A Model Context Protocol (MCP) server that enables AI assistants to check monumental status of Dutch addresses. Connects to the Dutch BAG (Basisadministratie Adressen en Gebouwen) data and Ministry of Cultural Heritage (Rijksdienst voor het Cultureel Erfgoed) to identify national monuments, protected cityscapes, and municipal monuments.
 
+Built on the [MCP Python SDK](https://py.sdk.modelcontextprotocol.io/) v2 (`MCPServer`). Tools return structured results; validation and lookup failures raise `ToolError` (`is_error=true`) so the model can retry.
+
+Requires Python 3.11+.
+
 > [!NOTE]
 > This MCP server is based on the [monumenten](https://github.com/woonstadrotterdam/monumenten) package. For more information, see the [monumenten](https://github.com/woonstadrotterdam/monumenten) package.
 
@@ -16,10 +20,12 @@ This MCP server allows AI assistants to:
 
 ### Available Tools
 
-| Tool                         | Parameters                                                                                                   | Description                                                                            |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Finds BAG verblijfsobject ID for an address                                            |
-| **`get_monumental_status`**  | `bag_verblijfsobject_id`                                                                                     | Checks if a property is a rijksmonument, in protected cityscape, or municipal monument |
+| Tool                         | Parameters                                                                                                   | Result                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Structured `matches` list of BAG verblijfsobject records                              |
+| **`get_monumental_status`**  | `bag_verblijfsobject_id` (16 digits)                                                                         | Structured monumental status (rijksmonument, protected cityscape, municipal monument) |
+
+Prefer `postal_code` + `house_number` when both are available. For a rijksmonument, always cite the source (RCE = Rijksdienst voor het Cultureel Erfgoed).
 
 ## Quick Setup
 
@@ -48,6 +54,8 @@ For local development:
   }
 }
 ```
+
+Streamable HTTP (`mcp-monumenten --http`) listens on `http://127.0.0.1:8000/mcp` by default.
 
 ## Usage Examples
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-MCP Monumenten Server Entry Point
+"""MCP Monumenten Server entry point.
 
 This allows the package to be run directly with:
 uvx mcp-monumenten
@@ -11,7 +10,6 @@ python -m mcp_monumenten
 """
 
 import argparse
-import asyncio
 import logging
 import os
 import sys
@@ -22,35 +20,27 @@ from mcp_monumenten.server import MonumentenMCP
 
 
 def setup_logging(transport_mode: str = "stdio") -> logging.Logger:
-    """Setup logging configuration based on transport mode."""
-    # Configure logging to stderr to avoid interfering with stdio protocol
+    """Configure logging; stdio logs go to stderr so they cannot corrupt the wire."""
     log_level = os.getenv("MCP_LOG_LEVEL", "INFO").upper()
 
-    # In stdio mode, we must use stderr to avoid interfering with protocol
-    # In HTTP mode, we can be more flexible
     if transport_mode == "stdio":
         handler = logging.StreamHandler(sys.stderr)
-        # More minimal format for stdio mode
         formatter = logging.Formatter("%(levelname)s: %(message)s")
     else:
         handler = logging.StreamHandler(sys.stdout)
-        # More detailed format for HTTP mode
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
 
     handler.setFormatter(formatter)
-
-    # Configure root logger
     logging.basicConfig(
         level=getattr(logging, log_level, logging.INFO), handlers=[handler], force=True
     )
-
     return logging.getLogger(__name__)
 
 
 def main() -> None:
-    """Main entry point for the MCP Monumenten Server"""
+    """Run the MCP Monumenten server."""
     load_dotenv()
 
     parser = argparse.ArgumentParser(description="MCP Monumenten Server")
@@ -80,42 +70,31 @@ def main() -> None:
     )
 
     args = parser.parse_args()
-
-    # Setup logging based on transport mode
     transport_mode = "http" if args.http else "stdio"
+
+    mcp = MonumentenMCP(name=args.name)
     logger = setup_logging(transport_mode)
 
-    # Create the MCP server with appropriate transport settings
-    # Only pass port if HTTP mode is enabled
-    server_kwargs = {
-        "name": args.name,
-        "host": args.host,
-        "stateless_http": args.stateless,
-    }
-
-    # Only add port if we're using HTTP transport
-    if args.http:
-        server_kwargs["port"] = args.port
-
-    mcp = MonumentenMCP(**server_kwargs)
-
-    # Log configuration info
     logger.info("Starting MCP Monumenten Server")
     logger.info(f"Name: {args.name}")
     logger.info(f"Transport: {'HTTP' if args.http else 'stdio'}")
     if args.http:
         logger.info(f"Host: {args.host}:{args.port}")
         logger.info(f"Stateless: {args.stateless}")
+        logger.info("MCP endpoint: /mcp")
 
-    # Run the server
     try:
-        mcp.run(transport="streamable-http" if args.http else "stdio")
+        if args.http:
+            mcp.run(
+                transport="streamable-http",
+                host=args.host,
+                port=args.port,
+                stateless_http=args.stateless,
+            )
+        else:
+            mcp.run(transport="stdio")
     except KeyboardInterrupt:
         logger.info("Shutting down server...")
-    finally:
-        # Clean up the server resources
-        if hasattr(mcp, "close"):
-            asyncio.run(mcp.close())
 
 
 if __name__ == "__main__":

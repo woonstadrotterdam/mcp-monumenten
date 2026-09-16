@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.woonstadrotterdam/monumenten",
+  "title": "Monumenten",
+  "description": "Look up Dutch BAG verblijfsobject IDs and monumental status.",
+  "repository": {
+    "url": "https://github.com/woonstadrotterdam/mcp-monumenten",
+    "source": "github",
+    "id": "1037337860"
+  },
+  "version": "3.0.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "mcp-monumenten",
+      "version": "3.0.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

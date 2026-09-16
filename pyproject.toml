@@ -1,12 +1,13 @@
 [project]
 name = "mcp-monumenten"
-version = "2.0.0"
+version = "3.0.0"
 description = "MCP server voor monumentale statussen in Nederland."
 readme = "README.md"
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11"
 dependencies = [
+    "aiohttp>=3.10.10",
     "dotenv>=0.9.9",
-    "mcp[cli]>=1.12.3",
+    "mcp[cli]>=2,<3",
     "monumenten>=2.0.0",
 ]
 license = "MIT"
@@ -21,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 
 [project.scripts]
@@ -48,3 +50,12 @@ testpaths = ["tests"]
 
 [tool.uv]
 exclude-newer = "1 week"
+# Transitive geopandas stack: use versions that ship CPython 3.14 wheels.
+# pyogrio 0.13.0 only publishes 3.14 free-threaded wheels, so CI would
+# otherwise try to compile it (and pyproj 3.7.1) from source.
+constraint-dependencies = [
+    "pandas>=2.3.3,<3",
+    "pyogrio>=0.12,<0.13",
+    "pyproj>=3.7.2",
+    "shapely>=2.1.2",
+]

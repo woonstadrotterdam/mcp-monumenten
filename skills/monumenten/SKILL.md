@@ -1,11 +1,10 @@
 ---
 description: >
-  Vind de monumentale status van een Nederlands adres voor woningwaardering
+  Look up WWS-relevant monumental status of a Dutch address
   (rijksmonument, rijksbeschermd stads- of dorpsgezicht, gemeentelijk monument;
-  provinciaal monument en gemeentelijk stadsgezicht worden niet opgezocht).
-  Look up Dutch BAG verblijfsobject IDs and WWS-relevant monumental status.
+  provincial monument and municipal cityscape are not looked up).
   Use when the user asks about monumentale status, erfgoed, BAG-IDs,
-  rijksmonumenten, woningwaardering, or provincial monuments.
+  rijksmonumenten, woningwaardering, monumental status, or provincial monuments.
 ---
 
 Use the Monumenten MCP tools. Prefer `postal_code` + `house_number` over street + city when both are available. Reply in the user's language.

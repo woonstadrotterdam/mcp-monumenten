@@ -1,0 +1,11 @@
+{
+  "name": "monumenten",
+  "version": "3.0.2",
+  "description": "Vind voor de woningwaardering relevante monumentale statussen van een adres in Nederland. Look up monumental statuses of a Dutch address that are relevant for woningwaardering (the Dutch rent-point system).",
+  "mcpServers": {
+    "monumenten": {
+      "command": "uvx",
+      "args": ["mcp-monumenten"]
+    }
+  }
+}

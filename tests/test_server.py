@@ -4,6 +4,7 @@ from typing import Any
 
 import pytest
 from mcp import Client
+from monumenten import BronFoutError  # type: ignore[import-not-found]
 
 from mcp_monumenten.models import VerblijfsobjectLookup, VerblijfsobjectMatch
 from mcp_monumenten.server import SERVER_NAME, MonumentenMCP
@@ -42,9 +43,25 @@ class _FakeMonumentenClient:
                 "rijksbeschermd_gezicht_naam": None,
                 "gemeentelijk_monument": False,
                 "grondslag_gemeentelijk_monument": None,
+                "rijksmonument_voorbescherming": False,
                 "provinciaal_monument": False,
+                "provinciaal_monument_omschrijving": None,
             }
         }
+
+
+class _FakeProvincieDownClient(_FakeMonumentenClient):
+    """A provincial service is down: provinciaal_monument is not determined."""
+
+    async def process_from_list(self, ids: list[str]) -> dict[str, dict[str, Any]]:
+        result = await super().process_from_list(ids)
+        result[ids[0]] |= {"rijksmonument": False, "provinciaal_monument": None}
+        return result
+
+
+class _FakeBronFoutClient(_FakeMonumentenClient):
+    async def process_from_list(self, ids: list[str]) -> dict[str, dict[str, Any]]:
+        raise BronFoutError("BAG heeft een storing", {"BAG": ids})
 
 
 def _error_text(result: Any) -> str:
@@ -138,7 +155,8 @@ async def test_get_monumental_status_unwraps_bag_id(
     assert result.structured_content["rijksmonument"] is True
     assert result.structured_content["rijksmonument_bron"] == ["RCE"]
     assert result.structured_content["provincie"] == "Zuid-Holland"
-    assert result.structured_content["provinciaal_monument"] is None
+    assert result.structured_content["provinciaal_monument"] is False
+    assert result.structured_content["rijksmonument_voorbescherming"] is False
     assert "notitie" not in result.structured_content
 
 
@@ -162,8 +180,52 @@ async def test_get_monumental_status_without_provincie(
     assert result.structured_content is not None
     assert result.structured_content["rijksmonument"] is True
     assert result.structured_content["provincie"] is None
-    assert result.structured_content["provinciaal_monument"] is None
+    assert result.structured_content["provinciaal_monument"] is False
     assert "notitie" not in result.structured_content
+
+
+@pytest.mark.asyncio
+async def test_get_monumental_status_keeps_undetermined_as_null(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A status a source could not determine stays null, not false."""
+    monkeypatch.setattr(
+        "mcp_monumenten.tools.MonumentenClient",
+        lambda: _FakeProvincieDownClient(),
+    )
+    monkeypatch.setattr("mcp_monumenten.tools.lookup_provincie", _fake_zuid_holland)
+    async with Client(MonumentenMCP(), raise_exceptions=True) as client:
+        result = await client.call_tool(
+            "get_monumental_status",
+            {"bag_verblijfsobject_id": "0599010000243626"},
+        )
+
+    assert result.is_error is False
+    assert result.structured_content is not None
+    assert result.structured_content["rijksmonument"] is False
+    assert result.structured_content["provinciaal_monument"] is None
+
+
+@pytest.mark.asyncio
+async def test_get_monumental_status_bron_fout_is_tool_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A source without any answer is a tool error naming the source."""
+    monkeypatch.setattr(
+        "mcp_monumenten.tools.MonumentenClient",
+        lambda: _FakeBronFoutClient(),
+    )
+    monkeypatch.setattr("mcp_monumenten.tools.lookup_provincie", _fake_zuid_holland)
+    async with Client(MonumentenMCP(), raise_exceptions=True) as client:
+        result = await client.call_tool(
+            "get_monumental_status",
+            {"bag_verblijfsobject_id": "0599010000243626"},
+        )
+
+    assert result.is_error is True
+    text = _error_text(result)
+    assert "BAG" in text
+    assert "could not be determined" in text
 
 
 @pytest.mark.asyncio

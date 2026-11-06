@@ -1,6 +1,6 @@
 [project]
 name = "mcp-monumenten"
-version = "3.0.2"
+version = "3.1.0"
 description = "Vind voor de woningwaardering relevante monumentale statussen van een adres in Nederland."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -8,7 +8,7 @@ dependencies = [
     "aiohttp>=3.10.10",
     "dotenv>=0.9.9",
     "mcp[cli]>=2,<3",
-    "monumenten>=2.0.0",
+    "monumenten>=3.0.0,<4",
 ]
 license = "MIT"
 authors = [
@@ -48,8 +48,16 @@ dev = [
 asyncio_mode = "auto"
 testpaths = ["tests"]
 
+[tool.uv.sources]
+# TEMPORARY: monumenten 3.0.0 is not on PyPI yet. Pinned to the head of
+# woonstadrotterdam/monumenten#64. Remove this table and run `uv lock` once
+# 3.0.0 is released.
+monumenten = { git = "https://github.com/woonstadrotterdam/monumenten", rev = "600b503510ff727c5d033d34227cca32fcd22b12" }
+
 [tool.uv]
 exclude-newer = "1 week"
+# Our own package: take a new monumenten release the day it is published.
+exclude-newer-package = { monumenten = false }
 # Transitive geopandas stack: use versions that ship CPython 3.14 wheels.
 # pyogrio 0.13.0 only publishes 3.14 free-threaded wheels, so CI would
 # otherwise try to compile it (and pyproj 3.7.1) from source.

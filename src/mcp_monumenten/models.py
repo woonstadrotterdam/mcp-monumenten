@@ -21,6 +21,13 @@ class VerblijfsobjectLookup(BaseModel):
     matches: list[VerblijfsobjectMatch]
 
 
+_NULL_IS_UNDETERMINED = (
+    "null means the status could not be determined because a source did not "
+    "answer; tell the user it was not determined, in the user's language. "
+    "Do not report it as false."
+)
+
+
 class MonumentalStatus(BaseModel):
     """Monumental status for one verblijfsobject."""
 
@@ -34,30 +41,56 @@ class MonumentalStatus(BaseModel):
             "Null if the provincie lookup failed."
         ),
     )
-    rijksmonument: bool | None = None
+    rijksmonument: bool | None = Field(
+        default=None,
+        description=f"National monument (rijksmonument). {_NULL_IS_UNDETERMINED}",
+    )
     rijksmonument_bron: list[str] | None = None
     rijksmonument_nummer: str | None = None
     rijksmonument_url: str | None = None
+    rijksmonument_voorbescherming: bool | None = Field(
+        default=None,
+        description=(
+            "Voorbescherming of a rijksmonument (Kadaster grondslagcode EWD): the "
+            "draft designation has been sent, but the monument is not yet in the "
+            "rijksmonumentenregister. This is not a rijksmonument and does not "
+            f"count as one for woningwaardering. {_NULL_IS_UNDETERMINED}"
+        ),
+    )
     rijksbeschermd_gezicht: bool | None = Field(
         default=None,
         description=(
             "Nationally protected town or village scape "
             "(rijksbeschermd stads- of dorpsgezicht). "
             "false does not mean the address is outside a municipal or provincial "
-            "beschermd stadsgezicht; those are not looked up."
+            "beschermd stadsgezicht; those are not looked up. "
+            f"{_NULL_IS_UNDETERMINED}"
         ),
     )
     rijksbeschermd_gezicht_naam: str | None = None
-    gemeentelijk_monument: bool | None = None
+    gemeentelijk_monument: bool | None = Field(
+        default=None,
+        description=(
+            "Municipal monument (gemeentelijk monument). Includes municipal "
+            "monuments under voorbescherming: the Kadaster does not distinguish "
+            f"them. {_NULL_IS_UNDETERMINED}"
+        ),
+    )
     grondslag_gemeentelijk_monument: str | None = None
     provinciaal_monument: bool | None = Field(
         default=None,
         description=(
-            "Provincial monument. Always null: this status is not looked up. "
-            "It only exists in Noord-Holland and Drenthe, and is mutually exclusive "
-            "with rijksmonument and gemeentelijk_monument. If provincie is one of "
-            "those or unknown, and the other monument flags are not true, tell the "
-            "user this was not checked, in the user's language. "
+            "Provincial monument. Only Noord-Holland and Drenthe designate them; "
+            "elsewhere this is false. Looked up in the provincial map services. "
+            "null means the service of the province could not be reached; tell "
+            "the user it was not determined, in the user's language. "
             "Do not report it as false."
+        ),
+    )
+    provinciaal_monument_omschrijving: str | None = Field(
+        default=None,
+        description=(
+            "Description of the provincial monument: number and name in Drenthe, "
+            "only the category in Noord-Holland."
         ),
     )

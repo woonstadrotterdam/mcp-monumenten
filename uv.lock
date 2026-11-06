@@ -12,6 +12,9 @@ resolution-markers = [
 exclude-newer = "0001-01-01T00:00:00Z" # This has no effect and is included for backwards compatibility when using relative exclude-newer values.
 exclude-newer-span = "P1W"
 
+[options.exclude-newer-package]
+monumenten = false
+
 [manifest]
 constraints = [
     { name = "pandas", specifier = ">=2.3.3,<3" },
@@ -636,7 +639,7 @@ cli = [
 
 [[package]]
 name = "mcp-monumenten"
-version = "3.0.2"
+version = "3.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -657,7 +660,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.10.10" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "mcp", extras = ["cli"], specifier = ">=2,<3" },
-    { name = "monumenten", specifier = ">=2.0.0" },
+    { name = "monumenten", git = "https://github.com/woonstadrotterdam/monumenten?rev=600b503510ff727c5d033d34227cca32fcd22b12" },
 ]
 
 [package.metadata.requires-dev]
@@ -691,18 +694,15 @@ wheels = [
 
 [[package]]
 name = "monumenten"
-version = "2.0.0"
-source = { registry = "https://pypi.org/simple" }
+version = "3.0.0b1"
+source = { git = "https://github.com/woonstadrotterdam/monumenten?rev=600b503510ff727c5d033d34227cca32fcd22b12#600b503510ff727c5d033d34227cca32fcd22b12" }
 dependencies = [
     { name = "aiocache" },
     { name = "aiohttp" },
     { name = "geopandas" },
     { name = "pandas" },
+    { name = "shapely" },
     { name = "tqdm" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/fa/2ace400b6c24e312cd94a8101ccbfdda06002c729e577157c6cf6ff8d7c3/monumenten-2.0.0.tar.gz", hash = "sha256:3704faf805d3e4812933651eb7b3d2f436cf2e6cfc02b40d87ab4bb2f380dfe3", size = 31464, upload-time = "2026-03-04T13:52:31.24Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/09/d1/f2eba38e0a724657a3ddb04065c5a827f07074389061ab2ada56c6e74414/monumenten-2.0.0-py3-none-any.whl", hash = "sha256:653c21780704ff2813220ead2676cb1a338d9d1b1e4964e09a41507e778391d8", size = 19012, upload-time = "2026-03-04T13:52:29.572Z" },
 ]
 
 [[package]]

@@ -22,10 +22,10 @@ This MCP server allows AI assistants to:
 
 ### Available Tools
 
-| Tool                         | Parameters                                                                                                   | Result                                                                                                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Structured `matches` list of BAG verblijfsobject records                                                                                                 |
-| **`get_monumental_status`**  | `bag_verblijfsobject_id` (16 digits)                                                                         | Structured monumental status (provincie, rijksmonument, rijksbeschermd stads-/dorpsgezicht, municipal monument; `provinciaal_monument` is always `null`) |
+| Tool                         | Parameters                                                                                                   | Result                                                                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`get_verblijfsobject_id`** | `house_number`, `postal_code` OR `street` + `house_number` + `city`, optional `house_letter`, `house_suffix` | Structured `matches` list of BAG verblijfsobject records                                                                                                                 |
+| **`get_monumental_status`**  | `bag_verblijfsobject_id` (16 digits)                                                                         | Structured monumental status (provincie, rijksmonument, voorbescherming, rijksbeschermd stads-/dorpsgezicht, municipal and provincial monument; `null` = not determined) |
 
 ## Quick Setup
 
@@ -78,7 +78,7 @@ The AI will:
 
 1. Convert the address to a BAG verblijfsobject ID
 2. Check monument registries
-3. Report rijksmonument status, rijksbeschermd stads-/dorpsgezicht, or municipal monument designation
+3. Report rijksmonument status, rijksbeschermd stads-/dorpsgezicht, or municipal or provincial monument designation
 
 **"Is 1234AB 30-2 a rijksmonument?"**
 
@@ -118,6 +118,11 @@ uv run --project . mcp-monumenten
 
 - **[Kadaster - BAG (Basisadministratie Adressen en Gebouwen)](https://www.kadaster.nl/)** - Official Dutch address registry
 - **[RCE (Rijksdienst voor het Cultureel Erfgoed)](https://www.rijksoverheid.nl/ministeries/cultureel-erfgoed/rijksdienst-voor-het-cultureel-erfgoed)** - National monuments registry
+- **Provinces Noord-Holland and Drenthe** - Provincial monuments, from their map services
+
+### When a source does not answer
+
+A status that could not be determined is `null`, never `false`. If a source (RCE, BAG or BRK-PB) does not answer at all, `get_monumental_status` returns a tool error naming the source. If only a provincial service is down, the call succeeds and `provinciaal_monument` is `null` for addresses in Noord-Holland and Drenthe.
 
 ## License
 

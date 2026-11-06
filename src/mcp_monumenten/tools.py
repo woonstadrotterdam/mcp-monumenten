@@ -5,7 +5,10 @@ from typing import Annotated, Any
 
 import aiohttp
 from mcp.server.mcpserver.exceptions import ToolError
-from monumenten import MonumentenClient  # type: ignore[import-not-found]
+from monumenten import (  # type: ignore[import-not-found]
+    BronFoutError,
+    MonumentenClient,
+)
 from pydantic import Field
 
 from .bag_queries import BAG_LV_ENDPOINT, build_address_query, build_postal_code_query
@@ -154,14 +157,24 @@ async def get_monumental_status(
 
     Always mention the source for the Rijksmonument status if it is a
     Rijksmonument. (RCE = Rijksdienst voor het Cultureel Erfgoed.)
-    Reply in the user's language. provinciaal_monument is not looked up.
+    Reply in the user's language. A status that is null could not be
+    determined because a source did not answer: say so, never report it as
+    false. rijksmonument_voorbescherming is not a rijksmonument.
     """
     try:
+        # A partial outage gives null statuses plus a
+        # MonumentStatusOnbepaaldWarning, which goes to stderr as a log line.
         async with MonumentenClient() as client:
             result, provincie = await asyncio.gather(
                 client.process_from_list([bag_verblijfsobject_id]),
                 lookup_provincie(bag_verblijfsobject_id),
             )
+    except BronFoutError as exc:
+        raise ToolError(
+            "A source did not answer, so the monumental status could not be "
+            f"determined: {exc}. Try again later; do not report the address as "
+            "not a monument."
+        ) from exc
     except Exception as exc:
         raise ToolError(f"Error fetching monumental status: {exc}") from exc
 
@@ -170,12 +183,8 @@ async def get_monumental_status(
         raise ToolError(
             f"No monumental status found for verblijfsobject {bag_verblijfsobject_id}"
         )
-    status = dict(status)
-    status.pop("provincie", None)
-    status.pop("provinciaal_monument", None)
     return MonumentalStatus(
         bag_verblijfsobject_id=bag_verblijfsobject_id,
         **status,
         provincie=provincie,
-        provinciaal_monument=None,
     )

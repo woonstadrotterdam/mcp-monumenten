@@ -16,7 +16,7 @@ class VerblijfsobjectMatch(BaseModel):
 
 
 class VerblijfsobjectLookup(BaseModel):
-    """Address lookup result from BAG LV."""
+    """Address lookup result from the PDOK BAG WFS."""
 
     matches: list[VerblijfsobjectMatch]
 

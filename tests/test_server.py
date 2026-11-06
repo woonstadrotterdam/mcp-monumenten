@@ -8,17 +8,22 @@ from mcp import Client
 from mcp_monumenten.models import VerblijfsobjectLookup, VerblijfsobjectMatch
 from mcp_monumenten.server import SERVER_NAME, MonumentenMCP
 
-COOLSINGEL_BINDING = {
-    "identificatie": {"value": "0599010000243626"},
-    "postcode": {"value": "3011AD"},
-    "huisnummer": {"value": "30"},
-    "straatnaam": {"value": "Coolsingel"},
-    "plaatsnaam": {"value": "Rotterdam"},
+COOLSINGEL_FEATURE = {
+    "type": "Feature",
+    "properties": {
+        "identificatie": "0599010000243626",
+        "postcode": "3011AD",
+        "huisnummer": 30,
+        "huisletter": "",
+        "toevoeging": "",
+        "openbare_ruimte": "Coolsingel",
+        "woonplaats": "Rotterdam",
+    },
 }
 
 
-async def _fake_sparql_single(_query: str) -> dict[str, Any]:
-    return {"results": {"bindings": [COOLSINGEL_BINDING]}}
+async def _fake_wfs_single(_filter: str) -> dict[str, Any]:
+    return {"type": "FeatureCollection", "features": [COOLSINGEL_FEATURE]}
 
 
 class _FakeMonumentenClient:
@@ -77,7 +82,7 @@ async def test_get_verblijfsobject_id_single_match(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """A single BAG match returns structured matches and is not an error."""
-    monkeypatch.setattr("mcp_monumenten.tools._post_sparql", _fake_sparql_single)
+    monkeypatch.setattr("mcp_monumenten.tools._get_bag_wfs", _fake_wfs_single)
     async with Client(MonumentenMCP(), raise_exceptions=True) as client:
         result = await client.call_tool(
             "get_verblijfsobject_id",
@@ -170,12 +175,12 @@ async def test_get_monumental_status_without_provincie(
 async def test_get_verblijfsobject_id_no_matches_is_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Empty SPARQL results are tool errors so the model can retry."""
+    """Empty WFS results are tool errors so the model can retry."""
 
-    async def empty(_query: str) -> dict[str, Any]:
-        return {"results": {"bindings": []}}
+    async def empty(_filter: str) -> dict[str, Any]:
+        return {"type": "FeatureCollection", "features": []}
 
-    monkeypatch.setattr("mcp_monumenten.tools._post_sparql", empty)
+    monkeypatch.setattr("mcp_monumenten.tools._get_bag_wfs", empty)
     async with Client(MonumentenMCP(), raise_exceptions=True) as client:
         result = await client.call_tool(
             "get_verblijfsobject_id",
@@ -184,3 +189,23 @@ async def test_get_verblijfsobject_id_no_matches_is_error(
 
     assert result.is_error is True
     assert "No verblijfsobject found" in _error_text(result)
+
+
+@pytest.mark.asyncio
+async def test_get_verblijfsobject_id_http_error_is_tool_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A failing WFS request is a tool error, not a crash."""
+
+    async def boom(_filter: str) -> dict[str, Any]:
+        raise ConnectionError("PDOK unavailable")
+
+    monkeypatch.setattr("mcp_monumenten.tools._get_bag_wfs", boom)
+    async with Client(MonumentenMCP(), raise_exceptions=True) as client:
+        result = await client.call_tool(
+            "get_verblijfsobject_id",
+            {"house_number": "30", "postal_code": "3011AD"},
+        )
+
+    assert result.is_error is True
+    assert "PDOK BAG WFS" in _error_text(result)

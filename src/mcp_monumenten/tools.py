@@ -8,9 +8,15 @@ from mcp.server.mcpserver.exceptions import ToolError
 from monumenten import MonumentenClient  # type: ignore[import-not-found]
 from pydantic import Field
 
-from .bag_queries import BAG_LV_ENDPOINT, build_address_query, build_postal_code_query
+from .bag_wfs import (
+    BAG_WFS_URL,
+    build_address_filter,
+    build_get_feature_params,
+    build_postal_code_filter,
+    matches_from_payload,
+)
 from .locatieserver import lookup_provincie
-from .models import MonumentalStatus, VerblijfsobjectLookup, VerblijfsobjectMatch
+from .models import MonumentalStatus, VerblijfsobjectLookup
 
 HouseNumber = Annotated[
     str,
@@ -36,6 +42,8 @@ HouseSuffix = Annotated[
     str | None,
     Field(description="House number suffix/addition, e.g. '2' in '30-2'"),
 ]
+_TIMEOUT = aiohttp.ClientTimeout(total=15)
+
 BagVerblijfsobjectId = Annotated[
     str,
     Field(
@@ -50,31 +58,21 @@ def _normalize_postal_code(postal_code: str) -> str:
     return postal_code.replace(" ", "").upper()
 
 
-def _binding_value(binding: dict[str, Any], key: str) -> str | None:
-    """Read a SPARQL JSON binding value."""
-    val = binding.get(key, {})
-    if isinstance(val, dict):
-        value = val.get("value")
-        return str(value) if value is not None else None
-    return None
-
-
-async def _post_sparql(query: str) -> dict[str, Any]:
-    """POST a SPARQL query to the BAG LV endpoint."""
-    headers = {
-        "Accept": "application/sparql-results+json",
-        "Content-Type": "application/x-www-form-urlencoded",
-    }
+async def _get_bag_wfs(fes_filter: str) -> dict[str, Any]:
+    """Run a GetFeature request on the PDOK BAG WFS and return the GeoJSON."""
     async with (
-        aiohttp.ClientSession() as session,
-        session.post(
-            BAG_LV_ENDPOINT, headers=headers, data={"query": query}
+        aiohttp.ClientSession(timeout=_TIMEOUT) as session,
+        session.get(
+            BAG_WFS_URL, params=build_get_feature_params(fes_filter)
         ) as response,
     ):
         if response.status != 200:
-            raise ToolError(f"Error querying Kadaster endpoint: HTTP {response.status}")
-        payload: dict[str, Any] = await response.json()
-        return payload
+            raise ToolError(f"Error querying PDOK BAG WFS: HTTP {response.status}")
+        # MapServer reports filter errors as an XML ExceptionReport with HTTP 200.
+        payload = await response.json(content_type=None)
+    if not isinstance(payload, dict):
+        raise ToolError("Error querying PDOK BAG WFS: unexpected response")
+    return payload
 
 
 async def get_verblijfsobject_id(
@@ -96,7 +94,7 @@ async def get_verblijfsobject_id(
 
     if postal_code:
         normalized_postal_code = _normalize_postal_code(postal_code)
-        sparql_query = build_postal_code_query(
+        fes_filter = build_postal_code_filter(
             normalized_postal_code, house_number, house_letter, house_suffix
         )
         not_found = (
@@ -108,7 +106,7 @@ async def get_verblijfsobject_id(
             raise ToolError(
                 "street and city cannot be empty when using address search."
             )
-        sparql_query = build_address_query(
+        fes_filter = build_address_filter(
             street, house_number, city, house_letter, house_suffix
         )
         not_found = (
@@ -122,26 +120,13 @@ async def get_verblijfsobject_id(
         )
 
     try:
-        result = await _post_sparql(sparql_query)
+        payload = await _get_bag_wfs(fes_filter)
     except ToolError:
         raise
     except Exception as exc:
-        raise ToolError(f"Error executing SPARQL query: {exc}") from exc
+        raise ToolError(f"Error querying PDOK BAG WFS: {exc}") from exc
 
-    bindings = result.get("results", {}).get("bindings", [])
-    matches = [
-        VerblijfsobjectMatch(
-            bag_verblijfsobject_id=bag_id,
-            postcode=_binding_value(binding, "postcode"),
-            huisnummer=_binding_value(binding, "huisnummer"),
-            huisletter=_binding_value(binding, "huisletter"),
-            huisnummertoevoeging=_binding_value(binding, "huisnummertoevoeging"),
-            straatnaam=_binding_value(binding, "straatnaam"),
-            plaatsnaam=_binding_value(binding, "plaatsnaam"),
-        )
-        for binding in bindings
-        if (bag_id := _binding_value(binding, "identificatie"))
-    ]
+    matches = matches_from_payload(payload)
     if not matches:
         raise ToolError(not_found)
     return VerblijfsobjectLookup(matches=matches)

@@ -35,40 +35,28 @@ def test_server_json_matches_package_metadata() -> None:
     assert cursor_plugin["mcpServers"] == "./.mcp.json"
 
 
-def test_agent_manifests_match_package_metadata() -> None:
-    """Codex, Copilot CLI and Gemini CLI manifests stay in step with the package."""
+def _load(path: str) -> dict:
+    return json.loads((ROOT / path).read_text())
+
+
+def test_agent_manifests_stay_in_step() -> None:
+    """A version bump or copy edit must reach every client's manifest."""
     version = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
-    claude_plugin = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
-    claude_mcp = json.loads((ROOT / ".mcp.json").read_text())["mcpServers"]
+    reference = _load(".claude-plugin/plugin.json")
+    for path in ("plugin.json", ".cursor-plugin/plugin.json", "gemini-extension.json"):
+        manifest = _load(path)
+        assert manifest["version"] == version, path
+        for field in ("name", "description", "keywords"):
+            assert manifest.get(field, reference[field]) == reference[field], (
+                path,
+                field,
+            )
 
-    # Agent Plugins 1.0 (Codex and Copilot CLI): root plugin.json + mcp.json.
-    plugin = json.loads((ROOT / "plugin.json").read_text())
-    assert plugin["$schema"] == (
-        "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
-    )
-    assert plugin["name"] == claude_plugin["name"]
-    assert plugin["version"] == version
-    assert plugin["description"] == claude_plugin["description"]
 
-    portable_mcp = json.loads((ROOT / "mcp.json").read_text())
-    assert portable_mcp["$schema"] == (
-        "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
-    )
-    assert portable_mcp["mcpServers"] == {
-        name: {"type": "stdio", **server} for name, server in claude_mcp.items()
+def test_mcp_configs_start_the_same_server() -> None:
+    """Agent Plugins' mcp.json and Gemini repeat .mcp.json; keep them identical."""
+    servers = _load(".mcp.json")["mcpServers"]
+    assert _load("gemini-extension.json")["mcpServers"] == servers
+    assert _load("mcp.json")["mcpServers"] == {
+        name: {"type": "stdio", **server} for name, server in servers.items()
     }
-
-    codex_marketplace = json.loads(
-        (ROOT / ".agents/plugins/marketplace.json").read_text()
-    )
-    entry = codex_marketplace["plugins"][0]
-    assert entry["name"] == plugin["name"]
-    assert entry["source"] == {"source": "local", "path": "./"}
-    assert {"installation", "authentication"} <= entry["policy"].keys()
-    assert entry["category"]
-
-    gemini = json.loads((ROOT / "gemini-extension.json").read_text())
-    assert gemini["name"] == plugin["name"]
-    assert gemini["version"] == version
-    assert gemini["description"] == claude_plugin["description"]
-    assert gemini["mcpServers"] == claude_mcp

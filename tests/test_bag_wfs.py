@@ -90,10 +90,42 @@ async def test_live_without_suffix_includes_h() -> None:
 
 
 @pytest.mark.asyncio
-async def test_live_without_letter_excludes_lettered_addresses() -> None:
-    """2e Middellandstraat 1 only has 1A-01, 1A-02 and 1B, so plain 1 is missing."""
-    with pytest.raises(ToolError, match="No verblijfsobject found"):
+async def test_live_without_letter_lists_existing_variants() -> None:
+    """2e Middellandstraat 1 only has 1A-01, 1A-02 and 1B, so plain 1 is missing.
+
+    The error names those variants so the model can ask or retry.
+    """
+    with pytest.raises(ToolError, match="No verblijfsobject found") as excinfo:
         await get_verblijfsobject_id("1", postal_code="3021BK")
+    message = str(excinfo.value)
+    assert "1A-01" in message
+    assert "1A-02" in message
+    assert "1B" in message
+
+
+@pytest.mark.asyncio
+async def test_live_nevenadres_by_postal_code() -> None:
+    """Prinsengracht 263 is a nevenadres; the hoofdadres is Westermarkt 10."""
+    lookup = await get_verblijfsobject_id("263", postal_code="1016GV")
+    assert lookup.matches == [
+        VerblijfsobjectMatch(
+            bag_verblijfsobject_id="0363010012149124",
+            postcode="1016GV",
+            huisnummer="263",
+            straatnaam="Prinsengracht",
+            plaatsnaam="Amsterdam",
+            nevenadres=True,
+        )
+    ]
+
+
+@pytest.mark.asyncio
+async def test_live_nevenadres_by_address() -> None:
+    lookup = await get_verblijfsobject_id(
+        "263", street="Prinsengracht", city="Amsterdam"
+    )
+    assert _ids(lookup.matches) == ["0363010012149124"]
+    assert lookup.matches[0].nevenadres is True
 
 
 @pytest.mark.asyncio

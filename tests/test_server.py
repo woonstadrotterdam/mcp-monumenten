@@ -180,7 +180,11 @@ async def test_get_verblijfsobject_id_no_matches_is_error(
     async def empty(_filter: str) -> dict[str, Any]:
         return {"type": "FeatureCollection", "features": []}
 
+    async def no_addresses(**_kwargs: Any) -> list[dict[str, Any]]:
+        return []
+
     monkeypatch.setattr("mcp_monumenten.tools._get_bag_wfs", empty)
+    monkeypatch.setattr("mcp_monumenten.tools.search_addresses", no_addresses)
     async with Client(MonumentenMCP(), raise_exceptions=True) as client:
         result = await client.call_tool(
             "get_verblijfsobject_id",

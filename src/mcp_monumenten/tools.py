@@ -15,8 +15,13 @@ from .bag_wfs import (
     build_postal_code_filter,
     matches_from_payload,
 )
-from .locatieserver import lookup_provincie
-from .models import MonumentalStatus, VerblijfsobjectLookup
+from .locatieserver import (
+    address_variants,
+    lookup_provincie,
+    nevenadres_docs,
+    search_addresses,
+)
+from .models import MonumentalStatus, VerblijfsobjectLookup, VerblijfsobjectMatch
 
 HouseNumber = Annotated[
     str,
@@ -43,6 +48,7 @@ HouseSuffix = Annotated[
     Field(description="House number suffix/addition, e.g. '2' in '30-2'"),
 ]
 _TIMEOUT = aiohttp.ClientTimeout(total=15)
+_MAX_VARIANTS_IN_ERROR = 20
 
 BagVerblijfsobjectId = Annotated[
     str,
@@ -91,6 +97,7 @@ async def get_verblijfsobject_id(
     if postal_code and (street or city):
         raise ToolError("Provide either postal_code OR (street + city), not both.")
 
+    normalized_postal_code = None
     if postal_code:
         normalized_postal_code = _normalize_postal_code(postal_code)
         fes_filter = build_postal_code_filter(
@@ -98,7 +105,7 @@ async def get_verblijfsobject_id(
         )
         not_found = (
             "No verblijfsobject found for postal code "
-            f"{normalized_postal_code}, house number {house_number}"
+            f"{normalized_postal_code}, house number {house_number}."
         )
     elif street and city:
         if not street.strip() or not city.strip():
@@ -109,8 +116,7 @@ async def get_verblijfsobject_id(
             street, house_number, city, house_letter, house_suffix
         )
         not_found = (
-            f"No verblijfsobject found for address: {street} {house_number}, {city}. "
-            "Postal code + house number usually works better."
+            f"No verblijfsobject found for address: {street} {house_number}, {city}."
         )
     else:
         raise ToolError(
@@ -125,9 +131,63 @@ async def get_verblijfsobject_id(
     except Exception as exc:
         raise ToolError(f"Error querying PDOK BAG WFS: {exc}") from exc
 
-    if not matches:
-        raise ToolError(not_found)
-    return VerblijfsobjectLookup(matches=matches)
+    if matches:
+        return VerblijfsobjectLookup(matches=matches)
+
+    # The WFS only has hoofdadressen. The Locatieserver also has nevenadressen,
+    # and tells which huisletter and toevoeging variants exist.
+    docs = await search_addresses(
+        house_number=house_number,
+        postal_code=normalized_postal_code,
+        street=None if normalized_postal_code else street,
+        city=None if normalized_postal_code else city,
+    )
+    nevenadressen = nevenadres_docs(docs, house_letter, house_suffix)
+    if nevenadressen:
+        return VerblijfsobjectLookup(
+            matches=[_nevenadres_match(doc) for doc in nevenadressen]
+        )
+    raise ToolError(_not_found_message(not_found, docs, normalized_postal_code))
+
+
+def _nevenadres_match(doc: dict[str, Any]) -> VerblijfsobjectMatch:
+    """Build a match from a Locatieserver nevenadres document."""
+
+    def text(key: str) -> str | None:
+        value = doc.get(key)
+        return None if value is None or value == "" else str(value)
+
+    return VerblijfsobjectMatch(
+        bag_verblijfsobject_id=str(doc["adresseerbaarobject_id"]),
+        postcode=text("postcode"),
+        huisnummer=text("huisnummer"),
+        huisletter=text("huisletter"),
+        huisnummertoevoeging=text("huisnummertoevoeging"),
+        straatnaam=text("straatnaam"),
+        plaatsnaam=text("woonplaatsnaam"),
+        nevenadres=True,
+    )
+
+
+def _not_found_message(
+    not_found: str, docs: list[dict[str, Any]], postal_code: str | None
+) -> str:
+    """Add the existing huisletter and toevoeging variants to a not-found error."""
+    variants = address_variants(docs)
+    if not variants:
+        if postal_code is None:
+            return f"{not_found} Postal code + house number usually works better."
+        return not_found
+    shown = ", ".join(variants[:_MAX_VARIANTS_IN_ERROR])
+    if len(variants) > _MAX_VARIANTS_IN_ERROR:
+        # The Locatieserver returns at most 100 rows, so a count could be short.
+        shown += " and more"
+    return (
+        f"{not_found} These addresses with this house number do exist: {shown}. "
+        "Ask the user which one they mean, then pass its letter as house_letter "
+        "and the part after the hyphen as house_suffix (30A-02: house_letter 'A', "
+        "house_suffix '02')."
+    )
 
 
 async def get_monumental_status(

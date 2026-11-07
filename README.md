@@ -116,8 +116,8 @@ uv run --project . mcp-monumenten
 
 ## Data Sources
 
-- **[Kadaster - BAG (Basisadministratie Adressen en Gebouwen)](https://www.kadaster.nl/)** - Official Dutch address registry, queried through the [PDOK BAG WFS](https://service.pdok.nl/kadaster/bag/wfs/v2_0) (`bag:verblijfsobject` layer) to turn an address into a verblijfsobject ID. Only hoofdadressen of verblijfsobjecten are found, so ligplaatsen, standplaatsen and nevenadressen return no match.
-- **[PDOK Locatieserver](https://api.pdok.nl/bzk/locatieserver/search/v3_1/free)** - Current provincie of a verblijfsobject
+- **[Kadaster - BAG (Basisadministratie Adressen en Gebouwen)](https://www.kadaster.nl/)** - Official Dutch address registry, queried through the [PDOK BAG WFS](https://service.pdok.nl/kadaster/bag/wfs/v2_0) (`bag:verblijfsobject` layer) to turn an address into a verblijfsobject ID. The layer only has hoofdadressen of verblijfsobjecten, so ligplaatsen and standplaatsen return no match.
+- **[PDOK Locatieserver](https://api.pdok.nl/bzk/locatieserver/search/v3_1/free)** - Current provincie of a verblijfsobject. When the WFS finds no hoofdadres, it also finds nevenadressen (returned with `nevenadres: true`) and lists the huisletter and toevoeging variants that exist for the house number in the error
 - **[RCE (Rijksdienst voor het Cultureel Erfgoed)](https://www.rijksoverheid.nl/ministeries/cultureel-erfgoed/rijksdienst-voor-het-cultureel-erfgoed)** - National monuments registry
 
 ## License

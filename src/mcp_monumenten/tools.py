@@ -8,8 +8,19 @@ from mcp.server.mcpserver.exceptions import ToolError
 from monumenten import MonumentenClient  # type: ignore[import-not-found]
 from pydantic import Field
 
-from .bag_queries import BAG_LV_ENDPOINT, build_address_query, build_postal_code_query
-from .locatieserver import lookup_provincie
+from .bag_wfs import (
+    BAG_WFS_URL,
+    build_address_filter,
+    build_get_feature_params,
+    build_postal_code_filter,
+    matches_from_payload,
+)
+from .locatieserver import (
+    address_variants,
+    lookup_provincie,
+    nevenadres_docs,
+    search_addresses,
+)
 from .models import MonumentalStatus, VerblijfsobjectLookup, VerblijfsobjectMatch
 
 HouseNumber = Annotated[
@@ -36,6 +47,9 @@ HouseSuffix = Annotated[
     str | None,
     Field(description="House number suffix/addition, e.g. '2' in '30-2'"),
 ]
+_TIMEOUT = aiohttp.ClientTimeout(total=15)
+_MAX_VARIANTS_IN_ERROR = 20
+
 BagVerblijfsobjectId = Annotated[
     str,
     Field(
@@ -50,30 +64,19 @@ def _normalize_postal_code(postal_code: str) -> str:
     return postal_code.replace(" ", "").upper()
 
 
-def _binding_value(binding: dict[str, Any], key: str) -> str | None:
-    """Read a SPARQL JSON binding value."""
-    val = binding.get(key, {})
-    if isinstance(val, dict):
-        value = val.get("value")
-        return str(value) if value is not None else None
-    return None
-
-
-async def _post_sparql(query: str) -> dict[str, Any]:
-    """POST a SPARQL query to the BAG LV endpoint."""
-    headers = {
-        "Accept": "application/sparql-results+json",
-        "Content-Type": "application/x-www-form-urlencoded",
-    }
+async def _get_bag_wfs(fes_filter: str) -> dict[str, Any]:
+    """Run a GetFeature request on the PDOK BAG WFS and return the GeoJSON."""
     async with (
-        aiohttp.ClientSession() as session,
-        session.post(
-            BAG_LV_ENDPOINT, headers=headers, data={"query": query}
+        aiohttp.ClientSession(timeout=_TIMEOUT) as session,
+        session.get(
+            BAG_WFS_URL, params=build_get_feature_params(fes_filter)
         ) as response,
     ):
         if response.status != 200:
-            raise ToolError(f"Error querying Kadaster endpoint: HTTP {response.status}")
-        payload: dict[str, Any] = await response.json()
+            raise ToolError(f"Error querying PDOK BAG WFS: HTTP {response.status}")
+        # MapServer reports filter errors as an XML ExceptionReport with HTTP 200,
+        # which fails to parse here and becomes a ToolError in the caller.
+        payload: dict[str, Any] = await response.json(content_type=None)
         return payload
 
 
@@ -94,26 +97,26 @@ async def get_verblijfsobject_id(
     if postal_code and (street or city):
         raise ToolError("Provide either postal_code OR (street + city), not both.")
 
+    normalized_postal_code = None
     if postal_code:
         normalized_postal_code = _normalize_postal_code(postal_code)
-        sparql_query = build_postal_code_query(
+        fes_filter = build_postal_code_filter(
             normalized_postal_code, house_number, house_letter, house_suffix
         )
         not_found = (
             "No verblijfsobject found for postal code "
-            f"{normalized_postal_code}, house number {house_number}"
+            f"{normalized_postal_code}, house number {house_number}."
         )
     elif street and city:
         if not street.strip() or not city.strip():
             raise ToolError(
                 "street and city cannot be empty when using address search."
             )
-        sparql_query = build_address_query(
+        fes_filter = build_address_filter(
             street, house_number, city, house_letter, house_suffix
         )
         not_found = (
-            f"No verblijfsobject found for address: {street} {house_number}, {city}. "
-            "Postal code + house number usually works better."
+            f"No verblijfsobject found for address: {street} {house_number}, {city}."
         )
     else:
         raise ToolError(
@@ -122,29 +125,69 @@ async def get_verblijfsobject_id(
         )
 
     try:
-        result = await _post_sparql(sparql_query)
+        matches = matches_from_payload(await _get_bag_wfs(fes_filter))
     except ToolError:
         raise
     except Exception as exc:
-        raise ToolError(f"Error executing SPARQL query: {exc}") from exc
+        raise ToolError(f"Error querying PDOK BAG WFS: {exc}") from exc
 
-    bindings = result.get("results", {}).get("bindings", [])
-    matches = [
-        VerblijfsobjectMatch(
-            bag_verblijfsobject_id=bag_id,
-            postcode=_binding_value(binding, "postcode"),
-            huisnummer=_binding_value(binding, "huisnummer"),
-            huisletter=_binding_value(binding, "huisletter"),
-            huisnummertoevoeging=_binding_value(binding, "huisnummertoevoeging"),
-            straatnaam=_binding_value(binding, "straatnaam"),
-            plaatsnaam=_binding_value(binding, "plaatsnaam"),
+    if matches:
+        return VerblijfsobjectLookup(matches=matches)
+
+    # The WFS only has hoofdadressen. The Locatieserver also has nevenadressen,
+    # and tells which huisletter and toevoeging variants exist.
+    docs = await search_addresses(
+        house_number=house_number,
+        postal_code=normalized_postal_code,
+        street=None if normalized_postal_code else street,
+        city=None if normalized_postal_code else city,
+    )
+    nevenadressen = nevenadres_docs(docs, house_letter, house_suffix)
+    if nevenadressen:
+        return VerblijfsobjectLookup(
+            matches=[_nevenadres_match(doc) for doc in nevenadressen]
         )
-        for binding in bindings
-        if (bag_id := _binding_value(binding, "identificatie"))
-    ]
-    if not matches:
-        raise ToolError(not_found)
-    return VerblijfsobjectLookup(matches=matches)
+    raise ToolError(_not_found_message(not_found, docs, normalized_postal_code))
+
+
+def _nevenadres_match(doc: dict[str, Any]) -> VerblijfsobjectMatch:
+    """Build a match from a Locatieserver nevenadres document."""
+
+    def text(key: str) -> str | None:
+        value = doc.get(key)
+        return None if value is None or value == "" else str(value)
+
+    return VerblijfsobjectMatch(
+        bag_verblijfsobject_id=str(doc["adresseerbaarobject_id"]),
+        postcode=text("postcode"),
+        huisnummer=text("huisnummer"),
+        huisletter=text("huisletter"),
+        huisnummertoevoeging=text("huisnummertoevoeging"),
+        straatnaam=text("straatnaam"),
+        plaatsnaam=text("woonplaatsnaam"),
+        nevenadres=True,
+    )
+
+
+def _not_found_message(
+    not_found: str, docs: list[dict[str, Any]], postal_code: str | None
+) -> str:
+    """Add the existing huisletter and toevoeging variants to a not-found error."""
+    variants = address_variants(docs)
+    if not variants:
+        if postal_code is None:
+            return f"{not_found} Postal code + house number usually works better."
+        return not_found
+    shown = ", ".join(variants[:_MAX_VARIANTS_IN_ERROR])
+    if len(variants) > _MAX_VARIANTS_IN_ERROR:
+        # The Locatieserver returns at most 100 rows, so a count could be short.
+        shown += " and more"
+    return (
+        f"{not_found} These addresses with this house number do exist: {shown}. "
+        "Ask the user which one they mean, then pass its letter as house_letter "
+        "and the part after the hyphen as house_suffix (30A-02: house_letter 'A', "
+        "house_suffix '02')."
+    )
 
 
 async def get_monumental_status(

@@ -13,10 +13,17 @@ class VerblijfsobjectMatch(BaseModel):
     huisnummertoevoeging: str | None = None
     straatnaam: str | None = None
     plaatsnaam: str | None = None
+    nevenadres: bool = Field(
+        default=False,
+        description=(
+            "True if this address is a nevenadres: the verblijfsobject has a "
+            "different hoofdadres. The monumental status is the same for both."
+        ),
+    )
 
 
 class VerblijfsobjectLookup(BaseModel):
-    """Address lookup result from BAG LV."""
+    """Address lookup result from the PDOK BAG WFS and Locatieserver."""
 
     matches: list[VerblijfsobjectMatch]
 

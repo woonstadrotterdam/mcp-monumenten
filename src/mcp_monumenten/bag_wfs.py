@@ -66,13 +66,6 @@ def _letter_suffix_clauses(
     return [letter, suffix]
 
 
-def _house_number(value: str) -> str:
-    """Return the house number if it is digits only."""
-    if not value.isdigit():
-        raise ValueError(f"house_number must be digits, got {value!r}")
-    return value
-
-
 def _filter(clauses: list[str]) -> str:
     """Wrap clauses in a FES 2.0 filter with an ``And``."""
     return f'<fes:Filter xmlns:fes="{_FES_NS}"><fes:And>{"".join(clauses)}</fes:And></fes:Filter>'
@@ -88,7 +81,7 @@ def build_postal_code_filter(
     return _filter(
         [
             _equal_to("postcode", postal_code),
-            _equal_to("huisnummer", _house_number(house_number)),
+            _equal_to("huisnummer", house_number),
             *_letter_suffix_clauses(house_letter, house_suffix),
         ]
     )
@@ -105,7 +98,7 @@ def build_address_filter(
     return _filter(
         [
             _equal_to("openbare_ruimte", street),
-            _equal_to("huisnummer", _house_number(house_number)),
+            _equal_to("huisnummer", house_number),
             _equal_to("woonplaats", city),
             *_letter_suffix_clauses(house_letter, house_suffix),
         ]
@@ -136,22 +129,12 @@ def _text(properties: dict[str, Any], key: str) -> str | None:
 
 def matches_from_payload(payload: dict[str, Any]) -> list[VerblijfsobjectMatch]:
     """Parse a WFS GeoJSON FeatureCollection into verblijfsobject matches."""
-    features = payload.get("features", [])
-    if not isinstance(features, list):
-        return []
     matches = []
-    for feature in features:
-        if not isinstance(feature, dict):
-            continue
-        properties = feature.get("properties")
-        if not isinstance(properties, dict):
-            continue
-        bag_id = _text(properties, "identificatie")
-        if not bag_id:
-            continue
+    for feature in payload["features"]:
+        properties = feature["properties"]
         matches.append(
             VerblijfsobjectMatch(
-                bag_verblijfsobject_id=bag_id,
+                bag_verblijfsobject_id=str(properties["identificatie"]),
                 postcode=_text(properties, "postcode"),
                 huisnummer=_text(properties, "huisnummer"),
                 huisletter=_text(properties, "huisletter"),

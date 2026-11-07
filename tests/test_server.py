@@ -191,16 +191,36 @@ async def test_get_verblijfsobject_id_no_matches_is_error(
     assert "No verblijfsobject found" in _error_text(result)
 
 
+class _Fake503Response:
+    status = 503
+
+    async def __aenter__(self) -> "_Fake503Response":
+        return self
+
+    async def __aexit__(self, *args: object) -> None:
+        return None
+
+
+class _Fake503Session:
+    def get(self, url: str, params: object = None) -> _Fake503Response:
+        return _Fake503Response()
+
+    async def __aenter__(self) -> "_Fake503Session":
+        return self
+
+    async def __aexit__(self, *args: object) -> None:
+        return None
+
+
 @pytest.mark.asyncio
 async def test_get_verblijfsobject_id_http_error_is_tool_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """A failing WFS request is a tool error, not a crash."""
-
-    async def boom(_filter: str) -> dict[str, Any]:
-        raise ConnectionError("PDOK unavailable")
-
-    monkeypatch.setattr("mcp_monumenten.tools._get_bag_wfs", boom)
+    """An HTTP error from the WFS is a tool error, not a crash."""
+    monkeypatch.setattr(
+        "mcp_monumenten.tools.aiohttp.ClientSession",
+        lambda *args, **kwargs: _Fake503Session(),
+    )
     async with Client(MonumentenMCP(), raise_exceptions=True) as client:
         result = await client.call_tool(
             "get_verblijfsobject_id",
@@ -208,4 +228,4 @@ async def test_get_verblijfsobject_id_http_error_is_tool_error(
         )
 
     assert result.is_error is True
-    assert "PDOK BAG WFS" in _error_text(result)
+    assert "PDOK BAG WFS: HTTP 503" in _error_text(result)

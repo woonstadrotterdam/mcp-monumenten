@@ -68,11 +68,10 @@ async def _get_bag_wfs(fes_filter: str) -> dict[str, Any]:
     ):
         if response.status != 200:
             raise ToolError(f"Error querying PDOK BAG WFS: HTTP {response.status}")
-        # MapServer reports filter errors as an XML ExceptionReport with HTTP 200.
-        payload = await response.json(content_type=None)
-    if not isinstance(payload, dict):
-        raise ToolError("Error querying PDOK BAG WFS: unexpected response")
-    return payload
+        # MapServer reports filter errors as an XML ExceptionReport with HTTP 200,
+        # which fails to parse here and becomes a ToolError in the caller.
+        payload: dict[str, Any] = await response.json(content_type=None)
+        return payload
 
 
 async def get_verblijfsobject_id(
@@ -120,13 +119,12 @@ async def get_verblijfsobject_id(
         )
 
     try:
-        payload = await _get_bag_wfs(fes_filter)
+        matches = matches_from_payload(await _get_bag_wfs(fes_filter))
     except ToolError:
         raise
     except Exception as exc:
         raise ToolError(f"Error querying PDOK BAG WFS: {exc}") from exc
 
-    matches = matches_from_payload(payload)
     if not matches:
         raise ToolError(not_found)
     return VerblijfsobjectLookup(matches=matches)

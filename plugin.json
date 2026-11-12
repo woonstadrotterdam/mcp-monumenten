@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "monumenten",
-  "version": "3.0.2",
+  "version": "3.1.0",
   "description": "Vind voor de woningwaardering relevante monumentale statussen van een adres in Nederland. Look up monumental statuses of a Dutch address that are relevant for woningwaardering (the Dutch rent-point system).",
   "author": {
     "name": "Woonstad Rotterdam",

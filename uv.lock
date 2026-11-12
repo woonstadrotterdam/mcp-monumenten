@@ -660,7 +660,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.10.10" },
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "mcp", extras = ["cli"], specifier = ">=2,<3" },
-    { name = "monumenten", git = "https://github.com/woonstadrotterdam/monumenten?rev=600b503510ff727c5d033d34227cca32fcd22b12" },
+    { name = "monumenten", specifier = ">=3.0.0,<4" },
 ]
 
 [package.metadata.requires-dev]
@@ -694,8 +694,8 @@ wheels = [
 
 [[package]]
 name = "monumenten"
-version = "3.0.0b1"
-source = { git = "https://github.com/woonstadrotterdam/monumenten?rev=600b503510ff727c5d033d34227cca32fcd22b12#600b503510ff727c5d033d34227cca32fcd22b12" }
+version = "3.0.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiocache" },
     { name = "aiohttp" },
@@ -703,6 +703,11 @@ dependencies = [
     { name = "pandas" },
     { name = "shapely" },
     { name = "tqdm" },
+    { name = "truststore" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/63/a8/44673f70c7cb98f40b41b012bd4f645df99b6699a36d2dd851c6c0caa280/monumenten-3.0.0.tar.gz", hash = "sha256:52a1cd5cc13190e84c926af3351f86a959418cfdfd710c5bd556d019b14243bc", size = 220155, upload-time = "2026-11-12T05:43:37.33Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e7/48/ed4b2a178464980ef72ad139243f1a4e8269b0ee6b677e1c4b6f40aa5e23/monumenten-3.0.0-py3-none-any.whl", hash = "sha256:fb60df3fcdfc4346f537c590a0ad5232b26eaa022cacbb4a0443fdb24d7d2ac6", size = 50331, upload-time = "2026-11-12T05:43:36.068Z" },
 ]
 
 [[package]]

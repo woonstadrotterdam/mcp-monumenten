@@ -68,6 +68,44 @@ Requires [uv](https://docs.astral.sh/uv/). Then:
 
 Or add the server directly: `claude mcp add monumenten -- uvx mcp-monumenten`.
 
+### OpenAI Codex plugin
+
+Requires [uv](https://docs.astral.sh/uv/). Then:
+
+```bash
+codex plugin marketplace add woonstadrotterdam/mcp-monumenten
+```
+
+```bash
+codex plugin add monumenten@woonstad-rotterdam
+```
+
+In the ChatGPT desktop app you can instead install **Monumenten** from the **Woonstad Rotterdam** marketplace in the Plugins Directory.
+
+### Gemini CLI extension
+
+Requires [uv](https://docs.astral.sh/uv/). Run outside an interactive session, then restart Gemini CLI:
+
+```bash
+gemini extensions install https://github.com/woonstadrotterdam/mcp-monumenten
+```
+
+Update later with `gemini extensions update monumenten`.
+
+### GitHub Copilot CLI plugin
+
+Requires [uv](https://docs.astral.sh/uv/). Then:
+
+```bash
+copilot plugin marketplace add woonstadrotterdam/mcp-monumenten
+```
+
+```bash
+copilot plugin install monumenten@woonstad-rotterdam
+```
+
+The repo ships one portable [Agent Plugins](https://agent-plugins.org/) manifest (`plugin.json` + `mcp.json`) that Codex and Copilot CLI both read. Gemini CLI reads `gemini-extension.json`; every client picks up the same `skills/monumenten` skill.
+
 ## Usage Examples
 
 ### Finding Monumental Status
@@ -116,7 +154,8 @@ uv run --project . mcp-monumenten
 
 ## Data Sources
 
-- **[Kadaster - BAG (Basisadministratie Adressen en Gebouwen)](https://www.kadaster.nl/)** - Official Dutch address registry
+- **[Kadaster - BAG (Basisadministratie Adressen en Gebouwen)](https://www.kadaster.nl/)** - Official Dutch address registry, queried through the [PDOK BAG WFS](https://service.pdok.nl/kadaster/bag/wfs/v2_0) (`bag:verblijfsobject` layer) to turn an address into a verblijfsobject ID. The layer only has hoofdadressen of verblijfsobjecten, so ligplaatsen and standplaatsen return no match.
+- **[PDOK Locatieserver](https://api.pdok.nl/bzk/locatieserver/search/v3_1/free)** - Current provincie of a verblijfsobject. When the WFS finds no hoofdadres, it also finds nevenadressen (returned with `nevenadres: true`) and lists the huisletter and toevoeging variants that exist for the house number in the error
 - **[RCE (Rijksdienst voor het Cultureel Erfgoed)](https://www.rijksoverheid.nl/ministeries/cultureel-erfgoed/rijksdienst-voor-het-cultureel-erfgoed)** - National monuments registry
 - **Provinces Noord-Holland and Drenthe** - Provincial monuments, from their map services
 

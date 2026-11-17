@@ -9,5 +9,17 @@
   "homepage": "https://github.com/woonstadrotterdam/mcp-monumenten",
   "repository": "https://github.com/woonstadrotterdam/mcp-monumenten",
   "license": "MIT",
-  "keywords": ["mcp", "monumenten", "rijksmonumenten", "kadaster", "bag"]
+  "keywords": [
+    "woningwaardering",
+    "wws",
+    "monumenten",
+    "rijksmonument",
+    "gemeentelijk monument",
+    "rijksbeschermd stadsgezicht",
+    "erfgoed",
+    "rce",
+    "bag",
+    "kadaster",
+    "mcp"
+  ]
 }

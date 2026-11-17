@@ -8,7 +8,7 @@ dependencies = [
     "aiohttp>=3.14.4",
     "dotenv>=0.9.9",
     "mcp[cli]>=2,<3",
-    "monumenten>=2.0.0",
+    "monumenten>=3.0.0,<4",
 ]
 license = "MIT"
 authors = [
@@ -50,6 +50,8 @@ testpaths = ["tests"]
 
 [tool.uv]
 exclude-newer = "1 week"
+# Our own package: take a new monumenten release the day it is published.
+exclude-newer-package = { monumenten = false }
 # Transitive geopandas stack: use versions that ship CPython 3.14 wheels.
 # pyogrio 0.13.0 only publishes 3.14 free-threaded wheels, so CI would
 # otherwise try to compile it (and pyproj 3.7.1) from source.
